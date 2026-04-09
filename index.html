@@ -1,0 +1,661 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="theme-color" content="#f5f0e8">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<link rel="manifest" href="manifest.json">
+<link rel="icon" type="image/png" sizes="192x192" href="icon-192.png">
+<link rel="apple-touch-icon" href="icon-192.png">
+<title>Uğuro — E-Kitap Okuyucu</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Merriweather:wght@300;400;700&family=Lora:wght@400;600;700&family=Literata:opsz,wght@7..72,300;7..72,400;7..72,600;7..72,700&family=Source+Serif+4:opsz,wght@8..60,300;8..60,400;8..60,600;8..60,700&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%;overflow:hidden;-webkit-tap-highlight-color:transparent}
+body{font-family:Georgia,'Times New Roman',serif;transition:background .3s,color .3s}
+::-webkit-scrollbar{width:6px}::-webkit-scrollbar-track{background:transparent}::-webkit-scrollbar-thumb{background:var(--border);border-radius:3px}
+::selection{background:var(--accent);color:#fff}
+
+body.t-day{--bg:#f5f0e8;--text:#2c2416;--accent:#8b6914;--surface:#ebe4d6;--border:#d4c9b4;--muted:#7a6e5c;--highlight:#e8d9a0;--note-bg:#faf6ec;--header:#ece5d4;--card:#fff8ec;--shadow:rgba(44,36,22,.08)}
+body.t-sepia{--bg:#f1e4c8;--text:#3e2d13;--accent:#9e6b1a;--surface:#e8d7b4;--border:#d1bf97;--muted:#7a6240;--highlight:#f0d88a;--note-bg:#f8f0da;--header:#e6d5b2;--card:#f6ebd0;--shadow:rgba(62,45,19,.08)}
+body.t-night{--bg:#1a1a22;--text:#c8c0b0;--accent:#c9a84c;--surface:#252530;--border:#3a3a4a;--muted:#787068;--highlight:#3d3520;--note-bg:#22222e;--header:#20202a;--card:#2a2a36;--shadow:rgba(0,0,0,.3)}
+body{background:var(--bg);color:var(--text)}
+
+.hidden{display:none!important}
+.overlay{position:fixed;inset:0;z-index:900;background:rgba(0,0,0,.45);display:none;align-items:center;justify-content:center;padding:16px}
+.overlay.open{display:flex}.overlay.side{justify-content:flex-end}
+.panel{background:var(--note-bg);border-radius:14px;padding:24px;max-width:460px;width:100%;box-shadow:0 20px 60px var(--shadow);border:1px solid var(--border);max-height:90vh;overflow-y:auto}
+.side-panel{width:420px;height:100%;background:var(--note-bg);overflow-y:auto;box-shadow:-4px 0 30px var(--shadow);border-left:1px solid var(--border);border-radius:0}
+.btn{border:none;cursor:pointer;font-family:inherit;border-radius:8px;transition:all .2s;display:inline-flex;align-items:center;justify-content:center;gap:6px}
+.btn-p{background:var(--accent);color:#fff;padding:8px 20px;font-size:14px;font-weight:600}
+.btn-p:hover{filter:brightness(1.1)}
+.btn-g{background:none;border:1px solid var(--border);color:var(--text);padding:8px 16px;font-size:14px}
+.btn-g:hover{background:var(--surface)}
+.btn-i{background:none;border:none;cursor:pointer;color:var(--text);padding:6px;border-radius:8px;display:flex;align-items:center;transition:color .2s,transform .2s}
+.btn-i:hover{background:var(--surface)}
+.inp{width:100%;padding:8px 12px;border-radius:8px;border:1px solid var(--border);background:var(--surface);color:var(--text);font-size:14px;outline:none;font-family:inherit}
+.inp:focus{border-color:var(--accent)}
+.ph{display:flex;justify-content:space-between;align-items:center;margin-bottom:20px}
+.ph h3{font-size:18px;font-weight:700;margin:0}
+svg.ic{display:inline-block;vertical-align:middle;flex-shrink:0}
+
+#load-ov{position:fixed;inset:0;z-index:2000;background:var(--bg);display:none;flex-direction:column;align-items:center;justify-content:center;gap:16px;color:var(--text)}
+#load-ov.open{display:flex}
+.bar-t{width:260px;height:6px;background:var(--border);border-radius:3px;overflow:hidden}
+.bar-f{height:100%;background:var(--accent);border-radius:3px;transition:width .15s;width:0}
+
+/* Library */
+#lib{display:flex;flex-direction:column;height:100vh;overflow-y:auto}
+.lh{padding:24px 32px 0;display:flex;align-items:center;justify-content:space-between}
+.lh h1{font-size:32px;font-weight:700;background:linear-gradient(135deg,var(--accent),var(--text));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+.ls{padding:4px 32px 24px;font-size:14px;color:var(--muted)}
+.lg{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:20px;padding:0 32px 32px}
+.bc{background:var(--card);border:1px solid var(--border);border-radius:12px;overflow:hidden;cursor:pointer;transition:all .2s;position:relative}
+.bc:hover{transform:translateY(-3px);box-shadow:0 8px 24px var(--shadow)}
+.bcv{height:120px;background:linear-gradient(135deg,var(--accent)22,var(--highlight));display:flex;align-items:center;justify-content:center;font-size:40px;position:relative}
+.bpr{position:absolute;bottom:0;left:0;right:0;height:3px;background:var(--border)}.bpr .f{height:100%;background:var(--accent);border-radius:0 2px 2px 0}
+.bci{padding:12px 14px}.bt{font-size:14px;font-weight:600;line-height:1.3;margin-bottom:4px;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.ba{font-size:12px;color:var(--muted)}
+.bdl{position:absolute;top:8px;right:8px;width:28px;height:28px;border-radius:50%;background:rgba(0,0,0,.5);color:#fff;border:none;cursor:pointer;display:none;align-items:center;justify-content:center;font-size:16px;z-index:5}
+.bc:hover .bdl{display:flex}
+.ac{border:2px dashed var(--border);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;min-height:180px;border-radius:12px;cursor:pointer;transition:all .2s;color:var(--muted);font-size:14px}
+.ac:hover{border-color:var(--accent);color:var(--accent);background:var(--surface)}
+
+/* Header */
+#hdr{position:sticky;top:0;z-index:100;background:var(--header);border-bottom:1px solid var(--border);padding:10px 20px;display:flex;align-items:center;justify-content:space-between;backdrop-filter:blur(10px)}
+.logo{font-weight:700;font-size:18px;color:var(--accent);cursor:pointer}
+.fn{font-size:12px;color:var(--muted);margin-left:12px;max-width:220px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.hc{display:flex;align-items:center;gap:4px}
+.pt{font-size:12px;color:var(--muted);margin-right:6px}
+.nd{position:absolute;top:3px;right:3px;width:7px;height:7px;border-radius:50%;background:var(--accent)}
+
+#pb{height:3px;background:var(--border)}#pb .f{height:100%;background:var(--accent);transition:width .3s;border-radius:0 2px 2px 0}
+
+/* Reader */
+#rdr{display:none;flex-direction:column;height:100vh}#rdr.open{display:flex}
+#pd{flex:1;display:grid;grid-template-columns:repeat(4,1fr);gap:0;padding:20px 16px;max-width:1600px;margin:0 auto;width:100%;align-items:stretch;overflow:hidden}
+.pg{padding:32px 36px 44px;position:relative;line-height:1.78;user-select:text;-webkit-user-select:text;overflow-wrap:break-word;word-break:break-word;overflow-y:auto}
+.pg p{margin:0 0 .9em;text-align:justify}.pg p+p{text-indent:1.5em}
+.pg h1,.pg h2,.pg h3,.pg h4{margin:0 0 .6em;text-indent:0!important;text-align:left;line-height:1.3}.pg h3{font-size:1.15em}
+.pg .pn{position:sticky;bottom:0;left:0;right:0;text-align:center;font-size:12px;color:var(--muted);font-weight:400;background:var(--bg);padding:8px 0 4px;margin-top:8px}
+.pgb{border-right:1px solid var(--border)}.pge{background:var(--surface);opacity:.2;min-height:300px;border-radius:6px}
+
+#navb{padding:12px 24px;display:flex;justify-content:center;align-items:center;gap:24px;border-top:1px solid var(--border);background:var(--header)}
+#navb .pi{font-size:14px;color:var(--muted)}
+#pm{flex:1;overflow-y:auto;display:none;scroll-behavior:smooth}
+#pm .pg{padding:20px 24px 40px;border-bottom:1px solid var(--border)}
+
+/* Settings */
+.sg{margin-bottom:20px}.sl{font-size:13px;color:var(--muted);display:block;margin-bottom:8px}
+.tr{display:flex;gap:8px}.tr button{flex:1;padding:10px 0;border-radius:8px;cursor:pointer;font-size:13px;font-weight:600;transition:all .2s;border:1px solid var(--border)}.tr button.on{border:2px solid var(--accent);background:var(--surface)}
+.fl{display:flex;flex-direction:column;gap:5px}.fl button{padding:10px 14px;border-radius:8px;text-align:left;border:1px solid var(--border);background:transparent;color:var(--text);cursor:pointer;font-size:15px;transition:all .2s}.fl button.on{border:2px solid var(--accent);background:var(--surface)}
+.sr,.wr{display:flex;gap:6px;flex-wrap:wrap}
+.sr button{width:40px;height:40px;border-radius:8px;display:flex;align-items:center;justify-content:center;border:1px solid var(--border);background:transparent;color:var(--text);cursor:pointer;font-size:13px;font-weight:600}.sr button.on{border:2px solid var(--accent);background:var(--surface)}
+.wr button{flex:1;padding:10px 0;border-radius:8px;border:1px solid var(--border);background:transparent;color:var(--text);cursor:pointer;font-size:13px}.wr button.on{border:2px solid var(--accent);background:var(--surface)}
+
+/* Notes */
+.nq{background:var(--highlight);border-radius:8px;padding:12px;margin-bottom:16px;border-left:3px solid var(--accent);font-size:14px;line-height:1.5;font-style:italic}
+.nq .meta{font-size:11px;color:var(--muted);margin-bottom:4px;font-style:normal}
+.nbh{padding:20px 24px;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:center;position:sticky;top:0;background:var(--header);z-index:2}
+.nbh h2{margin:0;font-size:20px;font-weight:700;display:flex;align-items:center;gap:8px}
+.nbi{border-bottom:1px solid var(--border)}
+.nbih{padding:14px 24px;cursor:pointer;display:flex;justify-content:space-between;align-items:center;transition:background .2s}.nbih:hover{background:var(--surface)}
+.nbn{background:var(--bg);border-radius:8px;padding:12px;margin-top:8px;border:1px solid var(--border);font-size:13px}
+.nbn .qr{border-left:3px solid var(--accent);padding-left:10px;margin-bottom:8px;font-style:italic;color:var(--muted);line-height:1.4}
+.nbn .nf{display:flex;justify-content:space-between;align-items:center;margin-top:8px}
+.nbn .nt{font-size:11px;color:var(--muted)}
+.nbe{padding:40px 24px;text-align:center;color:var(--muted)}
+.nbcr{padding:12px 24px;border-bottom:1px solid var(--border);display:flex;gap:8px}
+.nber{display:flex;gap:6px;align-items:center;padding:4px 24px 8px}
+
+/* Save toast */
+#save-toast{position:fixed;top:60px;left:50%;transform:translateX(-50%) translateY(-20px);background:var(--accent);color:#fff;padding:8px 20px;border-radius:20px;font-size:13px;font-weight:600;opacity:0;transition:opacity .3s,transform .3s;z-index:999;pointer-events:none}
+#save-toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+
+/* PWA Install Banner */
+#pwa-banner{position:fixed;bottom:0;left:0;right:0;background:var(--header);border-top:1px solid var(--border);padding:14px 20px;display:none;align-items:center;justify-content:space-between;z-index:800;box-shadow:0 -4px 20px var(--shadow);gap:12px}
+#pwa-banner.show{display:flex}
+#pwa-banner .msg{font-size:13px;line-height:1.4;flex:1}
+#pwa-banner .msg b{color:var(--accent)}
+#pwa-banner .close-banner{background:none;border:none;color:var(--muted);cursor:pointer;padding:4px;font-size:18px;flex-shrink:0}
+
+@media(max-width:767px){
+  #pd,#navb{display:none!important}#pm{display:block!important}
+  .side-panel{width:100%}.fn{max-width:90px}
+  .panel{max-width:100%;border-radius:10px;padding:18px}
+  .lh{padding:20px 20px 0}.ls{padding:4px 20px 20px}
+  .lg{grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:14px;padding:0 20px 20px}
+}
+@media(min-width:768px){
+  #pm{display:none!important}
+}
+</style>
+</head>
+<body class="t-day">
+
+<svg style="display:none">
+<symbol id="i-book" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M4 19.5A2.5 2.5 0 0 0 6.5 22H20V2H6.5A2.5 2.5 0 0 0 4 4.5v15z"/></symbol>
+<symbol id="i-upload" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></symbol>
+<symbol id="i-settings" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 1 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.32 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 1 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></symbol>
+<symbol id="i-note" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></symbol>
+<symbol id="i-sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></symbol>
+<symbol id="i-moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></symbol>
+<symbol id="i-x" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></symbol>
+<symbol id="i-left" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></symbol>
+<symbol id="i-right" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></symbol>
+<symbol id="i-plus" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></symbol>
+<symbol id="i-trash" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></symbol>
+<symbol id="i-edit" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></symbol>
+<symbol id="i-cd" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></symbol>
+<symbol id="i-cu" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="18 15 12 9 6 15"/></symbol>
+<symbol id="i-home" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></symbol>
+</svg>
+
+<div id="load-ov"><div style="font-size:24px;font-weight:700;color:var(--accent)">Uğuro</div><div class="bar-t"><div class="bar-f" id="lf"></div></div><div style="font-size:14px;color:var(--muted)" id="lt">Yükleniyor...</div></div>
+<div id="save-toast">✓ Kaydedildi</div>
+
+<!-- Install Guide Banner -->
+<div id="pwa-banner">
+  <div class="msg">
+    📱 <b>Uygulama olarak kullanmak için:</b><br>
+    Chrome menüsü (⋮) → <b>"Ana ekrana ekle"</b>
+  </div>
+  <button class="close-banner" onclick="closePwaBanner()">✕</button>
+</div>
+
+<!-- Install Help Overlay -->
+<div class="overlay" id="ov-install" onclick="closeInstall()">
+  <div class="panel" onclick="event.stopPropagation()" id="p-install" style="max-width:400px">
+    <div class="ph"><h3>📱 Telefonuna Yükle</h3><button class="btn-i" onclick="closeInstall()"><svg class="ic" width="18" height="18"><use href="#i-x"/></svg></button></div>
+    <div style="font-size:14px;line-height:1.7;color:var(--text)">
+      <p style="margin-bottom:16px">Uğuro'yu uygulama gibi kullanmak için:</p>
+      <div style="background:var(--surface);border-radius:10px;padding:16px;margin-bottom:12px">
+        <div style="font-weight:700;color:var(--accent);margin-bottom:8px">Chrome ile:</div>
+        <div style="margin-bottom:6px">1. Bu dosyayı <b>Chrome</b>'da aç</div>
+        <div style="margin-bottom:6px">2. Sağ üstte <b>⋮</b> (üç nokta) menüsüne dokun</div>
+        <div style="margin-bottom:6px">3. <b>"Ana ekrana ekle"</b> seçeneğine dokun</div>
+        <div>4. <b>"Ekle"</b> diye onayla ✓</div>
+      </div>
+      <div style="background:var(--surface);border-radius:10px;padding:16px;margin-bottom:12px">
+        <div style="font-weight:700;color:var(--accent);margin-bottom:8px">Samsung Internet ile:</div>
+        <div style="margin-bottom:6px">1. Menü (≡) → <b>"Sayfayı ekle"</b></div>
+        <div>2. <b>"Ana ekran"</b> seç</div>
+      </div>
+      <p style="font-size:13px;color:var(--muted);margin-top:12px">Ana ekranda Uğuro ikonu belirecek. Dokunduğunda tam ekran açılır, uygulama gibi çalışır.</p>
+    </div>
+  </div>
+</div>
+
+<div id="lib">
+  <div class="lh"><h1>Uğuro</h1><div style="display:flex;gap:8px;align-items:center">
+    <button class="btn-i" onclick="openInstall()" title="Yükle" id="install-btn"><svg class="ic" width="20" height="20"><use href="#i-upload"/></svg></button>
+    <button class="btn-i" onclick="openNotes()" title="Notlar" style="position:relative"><svg class="ic" width="20" height="20"><use href="#i-note"/></svg><span class="nd hidden" id="lnd"></span></button>
+    <button class="btn-i" onclick="cycleTheme()" title="Tema"><svg class="ic" width="20" height="20" id="lti"><use href="#i-sun"/></svg></button>
+  </div></div>
+  <div class="ls">E-kitap okuyucu — EPUB ve TXT destekli</div>
+  <div class="lg" id="lg"></div>
+</div>
+
+<div id="rdr">
+  <div id="hdr">
+    <div style="display:flex;align-items:center"><span class="logo" onclick="goHome()" id="logo-btn">Uğuro</span><span class="fn" id="rfn"></span></div>
+    <div class="hc">
+      <span class="pt" id="rpt">%0</span>
+      <button class="btn-i" onclick="cycleTheme()" title="Tema" id="rti"><svg class="ic" width="18" height="18"><use href="#i-sun"/></svg></button>
+      <button class="btn-i" onclick="openSettings()" title="Ayarlar"><svg class="ic" width="18" height="18"><use href="#i-settings"/></svg></button>
+      <button class="btn-i" onclick="openNotes()" title="Notlar" style="position:relative"><svg class="ic" width="18" height="18"><use href="#i-note"/></svg><span class="nd hidden" id="rnd"></span></button>
+      <button class="btn-i" onclick="goHome()" title="Kütüphane" id="home-btn"><svg class="ic" width="18" height="18"><use href="#i-home"/></svg></button>
+    </div>
+  </div>
+  <div id="pb"><div class="f" id="pbf"></div></div>
+  <div id="pd"></div>
+  <div id="pm"></div>
+  <div id="navb">
+    <button class="btn btn-g" id="pbtn" onclick="goPrev()"><svg class="ic" width="16" height="16"><use href="#i-left"/></svg> Önceki</button>
+    <span class="pi" id="pgi"></span>
+    <button class="btn btn-g" id="nbtn" onclick="goNext()">Sonraki <svg class="ic" width="16" height="16"><use href="#i-right"/></svg></button>
+  </div>
+</div>
+
+<div class="overlay" id="ovs" onclick="closeSettings()"><div class="panel" onclick="event.stopPropagation()" id="ps"></div></div>
+<div class="overlay" id="ovn" onclick="closeND()"><div class="panel" onclick="event.stopPropagation()" id="pn"></div></div>
+<div class="overlay side" id="ovnb" onclick="closeNotes()"><div class="side-panel" onclick="event.stopPropagation()" id="pnb"></div></div>
+<input type="file" id="fi" accept=".epub,.txt" style="display:none">
+
+<script>
+// ═══════════════════════════════════════════
+// CONFIG
+// ═══════════════════════════════════════════
+const COLS=4, CPP=2800;
+const FTS=[{n:"Georgia",f:"Georgia,'Times New Roman',serif"},{n:"Merriweather",f:"'Merriweather',Georgia,serif"},{n:"Lora",f:"'Lora',Georgia,serif"},{n:"Literata",f:"'Literata',Georgia,serif"},{n:"Source Serif",f:"'Source Serif 4',Georgia,serif"}];
+const SZS=[14,16,18,20,22,24,28];
+const WTS=[{l:"İnce",v:300},{l:"Normal",v:400},{l:"Kalın",v:600},{l:"Çok Kalın",v:700}];
+
+// ═══════════════════════════════════════════
+// STATE
+// ═══════════════════════════════════════════
+let P=[], CP=1, BID=null;
+let ST=ld("st",{theme:"day",ff:"Georgia,'Times New Roman',serif",fs:18,fw:400});
+let NB=ld("nb",[]);
+let LIB=ld("lib",[]);
+
+function ld(k,fb){try{const v=localStorage.getItem("ug_"+k);return v?JSON.parse(v):fb}catch{return fb}}
+function sv(k,v){try{localStorage.setItem("ug_"+k,JSON.stringify(v))}catch{}}
+function mob(){return innerWidth<768}
+function ic(id,s=18){return`<svg class="ic" width="${s}" height="${s}"><use href="#i-${id}"/></svg>`}
+function esc(s){const d=document.createElement("div");d.textContent=s;return d.innerHTML}
+
+// ═══════════════════════════════════════════
+// THEME
+// ═══════════════════════════════════════════
+function aT(){
+  document.body.className="t-"+ST.theme;
+  const h=ST.theme==="night"?"#i-moon":"#i-sun";
+  const a=document.getElementById("lti");if(a)a.innerHTML=`<use href="${h}"/>`;
+  const b=document.getElementById("rti");if(b)b.innerHTML=`<svg class="ic" width="18" height="18"><use href="${h}"/></svg>`;
+}
+function cycleTheme(){const o=["day","sepia","night"],i=o.indexOf(ST.theme);ST.theme=o[(i+1)%3];sv("st",ST);aT()}
+function sT(t){ST.theme=t;sv("st",ST);aT()}
+
+// ═══════════════════════════════════════════
+// EPUB PARSER
+// ═══════════════════════════════════════════
+async function parseEpub(buf,prog){
+  const zip=await JSZip.loadAsync(buf);prog(10,"EPUB açılıyor...");
+  const cxml=await zip.file("META-INF/container.xml").async("string");
+  const rm=cxml.match(/full-path="([^"]+)"/);
+  const rp=rm?rm[1]:"OEBPS/content.opf";
+  const rd=rp.substring(0,rp.lastIndexOf("/")+1);
+  const opf=await zip.file(rp).async("string");prog(15,"İçindekiler...");
+  const tM=opf.match(/<dc:title[^>]*>([^<]+)<\/dc:title>/);
+  const aM=opf.match(/<dc:creator[^>]*>([^<]+)<\/dc:creator>/);
+  const title=tM?tM[1].trim():"Bilinmeyen Kitap";
+  const author=aM?aM[1].trim():"";
+  const mf={};let mm;const mR=/<item\s+([^>]+)>/g;
+  while((mm=mR.exec(opf))!==null){const a=mm[1],id=a.match(/id="([^"]+)"/),hr=a.match(/href="([^"]+)"/),mt=a.match(/media-type="([^"]+)"/);if(id&&hr)mf[id[1]]={h:hr[1],m:mt?mt[1]:""};}
+  const sp=[];let sm;const sR=/<itemref\s+idref="([^"]+)"/g;
+  while((sm=sR.exec(opf))!==null)sp.push(sm[1]);
+  const all=[];const tot=sp.length;
+  for(let i=0;i<tot;i++){
+    const it=mf[sp[i]];if(!it||!it.m.includes("html"))continue;
+    const fp=rd+it.h;const f=zip.file(fp);if(!f)continue;
+    const html=await f.async("string");
+    const bM=html.match(/<body[^>]*>([\s\S]*?)<\/body>/i);
+    const bc=bM?bM[1]:html;
+    let c=bc
+      .replace(/<h[1-6][^>]*>([\s\S]*?)<\/h[1-6]>/gi,(_,t)=>{const x=t.replace(/<[^>]+>/g,"").trim();return x?"\n\n###"+x+"\n\n":""})
+      .replace(/<br\s*\/?>/gi,"\n").replace(/<\/p>/gi,"\n\n").replace(/<p[^>]*>/gi,"")
+      .replace(/<[^>]+>/g,"")
+      .replace(/&nbsp;/gi," ").replace(/&amp;/gi,"&").replace(/&lt;/gi,"<").replace(/&gt;/gi,">").replace(/&quot;/gi,'"').replace(/&#(\d+);/g,(_,n)=>String.fromCharCode(+n))
+      .replace(/\n{3,}/g,"\n\n").trim();
+    if(c.length>5)all.push(c);
+    prog(15+Math.round(i/tot*75),`Bölüm ${i+1}/${tot}`);
+  }
+  prog(92,"Sayfalar oluşturuluyor...");
+  const pages=splitPages(all.join("\n\n"));
+  prog(100,"Hazır!");
+  return{title,author,pages};
+}
+
+function splitPages(text){
+  const pgs=[];const ps=text.split(/\n\n+/);let c="";
+  for(const p of ps){if((c+"\n\n"+p).length>CPP&&c){pgs.push(c.trim());c=p}else c+=(c?"\n\n":"")+p}
+  if(c.trim())pgs.push(c.trim());
+  return pgs;
+}
+
+async function parseTxt(text,prog){
+  prog(50,"İşleniyor...");
+  const pages=splitPages(text);
+  prog(100,"Hazır!");
+  return{title:"Metin Dosyası",author:"",pages};
+}
+
+// ═══════════════════════════════════════════
+// LOADING
+// ═══════════════════════════════════════════
+function sL(){document.getElementById("load-ov").classList.add("open")}
+function hL(){document.getElementById("load-ov").classList.remove("open")}
+function sLP(p,m){document.getElementById("lf").style.width=p+"%";document.getElementById("lt").textContent=m||("% "+p)}
+
+// ═══════════════════════════════════════════
+// TOAST
+// ═══════════════════════════════════════════
+function showToast(msg){
+  const t=document.getElementById("save-toast");
+  t.textContent=msg||"✓ Kaydedildi";
+  t.classList.add("show");
+  setTimeout(()=>t.classList.remove("show"),1200);
+}
+
+// ═══════════════════════════════════════════
+// LIBRARY
+// ═══════════════════════════════════════════
+function rL(){
+  document.getElementById("lib").classList.remove("hidden");
+  document.getElementById("rdr").classList.remove("open");
+  uND();
+  let h=`<div class="ac" onclick="document.getElementById('fi').click()">${ic("plus",32)}<span>Kitap Ekle</span></div>`;
+  LIB.forEach(b=>{
+    const p=b.tp?Math.round((b.cp||1)/b.tp*100):0;
+    h+=`<div class="bc" onclick="oB('${b.id}')"><button class="bdl" onclick="event.stopPropagation();dB('${b.id}')" title="Sil">×</button><div class="bcv">📖<div class="bpr"><div class="f" style="width:${p}%"></div></div></div><div class="bci"><div class="bt">${esc(b.t)}</div><div class="ba">${esc(b.a||"")}${p>0?" · %"+p:""}</div></div></div>`;
+  });
+  document.getElementById("lg").innerHTML=h;
+}
+
+function dB(id){
+  if(!confirm("Bu kitabı silmek istediğinize emin misiniz?"))return;
+  LIB=LIB.filter(b=>b.id!==id);sv("lib",LIB);
+  try{localStorage.removeItem("ug_bk_"+id)}catch{}
+  rL();
+}
+
+async function oB(id){
+  const bk=LIB.find(b=>b.id===id);if(!bk)return;
+  sL();sLP(0,"Kitap açılıyor...");
+  let pages=null;
+  try{
+    const s=localStorage.getItem("ug_bk_"+id);
+    if(s){sLP(50,"Sayfalar yükleniyor...");pages=JSON.parse(s);sLP(100,"Hazır!")}
+  }catch{}
+  if(!pages){sLP(100,"Veri bulunamadı. Tekrar yükleyin.");setTimeout(hL,1500);return}
+  P=pages; BID=id; CP=bk.cp||1;
+  if(CP>P.length)CP=1;
+  setTimeout(()=>{hL();showReader()},300);
+}
+
+// ═══════════════════════════════════════════
+// FILE INPUT
+// ═══════════════════════════════════════════
+document.getElementById("fi").addEventListener("change",async e=>{
+  const file=e.target.files?.[0];if(!file)return;e.target.value="";
+  sL();sLP(0,"Dosya okunuyor...");
+  try{
+    let r;
+    if(file.name.endsWith(".epub")){
+      const buf=await file.arrayBuffer();
+      r=await parseEpub(buf,(p,m)=>sLP(p,m));
+    }else{
+      const txt=await file.text();
+      r=await parseTxt(txt,(p,m)=>sLP(p,m));
+      if(!r.title||r.title==="Metin Dosyası")r.title=file.name.replace(/\.[^.]+$/,"");
+    }
+    if(!r.pages.length){sLP(100,"Dosya okunamadı.");setTimeout(hL,1500);return}
+    const ex=LIB.findIndex(b=>b.t===r.title);
+    const id=ex>=0?LIB[ex].id:("bk_"+Date.now());
+    try{localStorage.setItem("ug_bk_"+id,JSON.stringify(r.pages))}catch{console.warn("localStorage dolu")}
+    if(ex>=0){LIB[ex].tp=r.pages.length}
+    else{LIB.push({id,t:r.title,a:r.author,tp:r.pages.length,cp:1,at:Date.now()})}
+    sv("lib",LIB);
+    P=r.pages; BID=id; CP=ex>=0?(LIB[ex].cp||1):1;
+    setTimeout(()=>{hL();showReader()},300);
+  }catch(err){console.error(err);sLP(100,"Hata: "+err.message);setTimeout(hL,2e3)}
+});
+
+// ═══════════════════════════════════════════
+// READER
+// ═══════════════════════════════════════════
+function showReader(){
+  document.getElementById("lib").classList.add("hidden");
+  const rdr=document.getElementById("rdr");
+  rdr.classList.add("open");
+  const bk=LIB.find(b=>b.id===BID);
+  document.getElementById("rfn").textContent=bk?bk.t:"";
+  renderPages();
+  // Scroll mobile to saved page
+  if(mob()){
+    setTimeout(()=>scrollToPage(CP),100);
+  }
+}
+
+function goHome(){
+  savePos();
+  showToast("✓ Kaydedildi — Sayfa "+CP);
+  const btn=document.getElementById("home-btn");
+  if(btn){btn.style.color="#d94040";btn.style.transform="scale(1.3)"}
+  setTimeout(()=>{
+    if(btn){btn.style.color="";btn.style.transform=""}
+    document.getElementById("rdr").classList.remove("open");
+    document.getElementById("lib").classList.remove("hidden");
+    P=[];BID=null;rL();
+  },600);
+}
+
+function gS(){return Math.floor((CP-1)/COLS)*COLS}
+
+function goNext(){
+  if(mob()){if(CP<P.length)CP++}
+  else{const n=gS()+COLS+1;if(n<=P.length)CP=n}
+  savePos();renderPages();
+}
+function goPrev(){
+  if(mob()){if(CP>1)CP--}
+  else{const p=gS()-COLS+1;if(p>=1)CP=p}
+  savePos();renderPages();
+}
+
+function savePos(){
+  if(!BID)return;
+  const b=LIB.find(x=>x.id===BID);
+  if(b){b.cp=CP;sv("lib",LIB)}
+}
+
+function updateProgress(){
+  const t=P.length;if(!t)return;
+  const pct=Math.round(CP/t*100);
+  document.getElementById("rpt").textContent="%"+pct;
+  document.getElementById("pbf").style.width=pct+"%";
+}
+
+// ═══════════════════════════════════════════
+// PAGE BUILDING
+// ═══════════════════════════════════════════
+function bPg(content,num,total,cls=""){
+  const parts=content.split("\n\n");let ph="";
+  for(let i=0;i<parts.length;i++){
+    const p=parts[i];
+    if(p.startsWith("###")){ph+=`<h3>${esc(p.slice(3).trim())}</h3>`}
+    else{ph+=`<p>${esc(p)}</p>`}
+  }
+  return`<div class="pg ${cls}" data-page="${num}" style="font-family:${ST.ff};font-size:${ST.fs}px;font-weight:${ST.fw}" onmouseup="onSel(${num})" ontouchend="onSel(${num})">${ph}<div class="pn">${num} / ${total}</div></div>`;
+}
+
+function renderPages(){
+  const t=P.length;
+  
+  // Desktop 4-column
+  const st=gS();let dh="";
+  for(let i=0;i<COLS;i++){
+    const idx=st+i;
+    if(idx<t){dh+=bPg(P[idx],idx+1,t,i<COLS-1&&idx+1<t?"pgb":"")}
+    else{dh+=`<div class="pge"></div>`}
+  }
+  document.getElementById("pd").innerHTML=dh;
+  document.getElementById("pgi").textContent=`Sayfa ${st+1}–${Math.min(st+COLS,t)} / ${t}`;
+  document.getElementById("pbtn").disabled=st===0;
+  document.getElementById("nbtn").disabled=st+COLS>=t;
+
+  // Mobile: all pages
+  let mh="";
+  for(let i=0;i<t;i++)mh+=bPg(P[i],i+1,t);
+  document.getElementById("pm").innerHTML=mh;
+
+  updateProgress();
+  savePos();
+  uND();
+
+  // Setup mobile scroll observer
+  if(mob())setupMobileScroll();
+}
+
+// ═══════════════════════════════════════════
+// MOBILE SCROLL TRACKING
+// ═══════════════════════════════════════════
+let _scrollDebounce=null;
+function setupMobileScroll(){
+  const container=document.getElementById("pm");
+  if(!container)return;
+  
+  container.onscroll=function(){
+    if(_scrollDebounce)clearTimeout(_scrollDebounce);
+    _scrollDebounce=setTimeout(()=>{
+      const pages=container.querySelectorAll(".pg[data-page]");
+      const containerTop=container.scrollTop;
+      const containerMid=containerTop+container.clientHeight/2;
+      let visiblePage=1;
+      pages.forEach(pg=>{
+        if(pg.offsetTop<=containerMid){
+          visiblePage=parseInt(pg.dataset.page)||1;
+        }
+      });
+      CP=visiblePage;
+      updateProgress();
+      savePos();
+    },150);
+  };
+}
+
+function scrollToPage(pageNum){
+  const container=document.getElementById("pm");
+  if(!container)return;
+  const target=container.querySelector(`.pg[data-page="${pageNum}"]`);
+  if(target){
+    container.scrollTop=target.offsetTop;
+  }
+}
+
+// ═══════════════════════════════════════════
+// TEXT SELECTION -> NOTE
+// ═══════════════════════════════════════════
+function onSel(pg){
+  const s=window.getSelection(),t=s?.toString().trim();
+  if(t&&t.split(/\s+/).length>=2)oND(t,pg);
+}
+
+let _ns="",_np=0;
+function oND(sel,pg){
+  _ns=sel;_np=pg;
+  let opts=NB.map(n=>`<option value="${n.id}">${esc(n.name)} (${n.notes.length})</option>`).join("");
+  opts+=`<option value="new">+ Yeni Defter Oluştur</option>`;
+  if(!NB.length)opts=`<option value="new">+ Yeni Defter Oluştur</option>`;
+  document.getElementById("pn").innerHTML=`
+    <div class="ph"><h3>Not Ekle</h3><button class="btn-i" onclick="closeND()">${ic("x")}</button></div>
+    <div class="nq"><div class="meta">Sayfa ${pg} — Seçili Metin:</div>"${esc(sel.length>200?sel.slice(0,200)+"...":sel)}"</div>
+    <div style="margin-bottom:12px"><label style="font-size:13px;color:var(--muted);display:block;margin-bottom:6px">Defter:</label><select class="inp" id="nds" onchange="document.getElementById('ndn').style.display=this.value==='new'?'block':'none'">${opts}</select></div>
+    <div id="ndn" style="display:${NB.length?"none":"block"};margin-bottom:12px"><input class="inp" id="ndnn" placeholder="Defter adı..."></div>
+    <div style="margin-bottom:12px"><label style="font-size:13px;color:var(--muted);display:block;margin-bottom:6px">Notunuz:</label><textarea class="inp" id="ndt" placeholder="Notunuzu yazın..." rows="4" style="resize:vertical;line-height:1.5;min-height:80px"></textarea></div>
+    <div style="display:flex;gap:8px;justify-content:flex-end"><button class="btn btn-g" onclick="closeND()">İptal</button><button class="btn btn-p" onclick="svN()">Kaydet</button></div>`;
+  document.getElementById("ovn").classList.add("open");
+  if(!NB.length)document.getElementById("nds").value="new";
+}
+function closeND(){document.getElementById("ovn").classList.remove("open");window.getSelection()?.removeAllRanges()}
+function svN(){
+  const txt=document.getElementById("ndt").value.trim();if(!txt)return;
+  const nbId=document.getElementById("nds").value;
+  const note={text:txt,sel:_ns,pg:_np,ts:Date.now(),bid:BID};
+  if(nbId==="new"){const nm=document.getElementById("ndnn").value.trim()||("Defter "+(NB.length+1));NB.push({id:"nb_"+Date.now(),name:nm,notes:[note]})}
+  else{const nb=NB.find(n=>n.id===nbId);if(nb)nb.notes.push(note)}
+  sv("nb",NB);closeND();uND();
+}
+
+// ═══════════════════════════════════════════
+// NOTEBOOKS PANEL
+// ═══════════════════════════════════════════
+function openNotes(){rNP();document.getElementById("ovnb").classList.add("open")}
+function closeNotes(){document.getElementById("ovnb").classList.remove("open")}
+function rNP(){
+  let h=`<div class="nbh"><h2>${ic("note",22)} Notlarım</h2><div style="display:flex;gap:8px;align-items:center"><button class="btn btn-p" style="padding:6px 12px;font-size:13px" onclick="sCNb()">${ic("plus",14)} Yeni Defter</button><button class="btn-i" onclick="closeNotes()">${ic("x",20)}</button></div></div><div id="nbc"></div>`;
+  if(!NB.length){h+=`<div class="nbe">${ic("note",48)}<p style="margin-top:12px">Henüz not defteriniz yok.</p></div>`}
+  else NB.forEach((nb,i)=>{
+    h+=`<div class="nbi"><div class="nbih" onclick="tNb(${i})"><div><div style="font-weight:600;font-size:15px">${esc(nb.name)}</div><div style="font-size:12px;color:var(--muted);margin-top:2px">${nb.notes.length} not</div></div><div style="display:flex;gap:4px;align-items:center">
+      <button class="btn-i" onclick="event.stopPropagation();srNb(${i})" title="Yeniden Adlandır" style="padding:4px">${ic("edit",14)}</button>
+      <button class="btn-i" onclick="event.stopPropagation();dNb(${i})" title="Sil" style="padding:4px;color:var(--muted)">${ic("trash",14)}</button>
+      <button class="btn-i" onclick="event.stopPropagation();sAN('${nb.id}')" style="padding:4px;color:var(--accent)">${ic("plus",16)}</button>
+      <svg class="ic" width="16" height="16" style="color:var(--muted)" id="nc${i}"><use href="#i-cd"/></svg></div></div>
+    <div id="nrn${i}" class="nber" style="display:none"></div>
+    <div id="na${nb.id}" class="nbcr" style="display:none"><input class="inp" id="nai${nb.id}" placeholder="Not yazın..." onkeydown="if(event.key==='Enter')aDN('${nb.id}')"><button class="btn btn-p" style="padding:8px 12px;font-size:13px" onclick="aDN('${nb.id}')">Ekle</button></div>
+    <div id="nn${i}" style="display:none;padding:0 24px 16px">`;
+    if(!nb.notes.length)h+=`<p style="font-size:13px;color:var(--muted);margin:8px 0">Henüz not yok.</p>`;
+    else nb.notes.forEach((n,ni)=>{
+      h+=`<div class="nbn">`;
+      if(n.sel)h+=`<div class="qr">"${esc(n.sel.length>150?n.sel.slice(0,150)+"...":n.sel)}"${n.pg?`<span style="font-size:11px;margin-left:8px">— Sayfa ${n.pg}</span>`:""}</div>`;
+      h+=`<div style="line-height:1.5">${esc(n.text)}</div><div class="nf"><span class="nt">${new Date(n.ts).toLocaleString("tr-TR")}</span><button class="btn-i" style="padding:2px" onclick="dN(${i},${ni})">${ic("trash",14)}</button></div></div>`;
+    });
+    h+=`</div></div>`;
+  });
+  document.getElementById("pnb").innerHTML=h;
+}
+function tNb(i){const e=document.getElementById("nn"+i),c=document.getElementById("nc"+i);if(e.style.display==="none"){e.style.display="block";c.innerHTML='<use href="#i-cu"/>'}else{e.style.display="none";c.innerHTML='<use href="#i-cd"/>'}}
+function sCNb(){document.getElementById("nbc").innerHTML=`<div class="nbcr"><input class="inp" id="ncbi" placeholder="Defter adı..." autofocus><button class="btn btn-p" style="padding:8px 14px;font-size:13px" onclick="cNb()">Oluştur</button></div>`;setTimeout(()=>document.getElementById("ncbi")?.focus(),50)}
+function cNb(){const nm=document.getElementById("ncbi")?.value.trim();if(!nm)return;NB.push({id:"nb_"+Date.now(),name:nm,notes:[]});sv("nb",NB);rNP();uND()}
+function sAN(id){const e=document.getElementById("na"+id);e.style.display=e.style.display==="none"?"flex":"none";if(e.style.display==="flex")setTimeout(()=>document.getElementById("nai"+id)?.focus(),50)}
+function aDN(id){const inp=document.getElementById("nai"+id),txt=inp?.value.trim();if(!txt)return;const nb=NB.find(n=>n.id===id);if(nb){nb.notes.push({text:txt,sel:null,pg:null,ts:Date.now(),bid:BID});sv("nb",NB);rNP();uND()}}
+function dN(i,ni){NB[i].notes.splice(ni,1);sv("nb",NB);rNP();uND()}
+function dNb(i){if(!confirm(`"${NB[i].name}" defterini silmek istediğinize emin misiniz?`))return;NB.splice(i,1);sv("nb",NB);rNP();uND()}
+function srNb(i){const e=document.getElementById("nrn"+i);e.style.display="flex";e.innerHTML=`<input class="inp" id="nri${i}" value="${esc(NB[i].name)}" style="flex:1"><button class="btn btn-p" style="padding:6px 12px;font-size:13px" onclick="frNb(${i})">Kaydet</button><button class="btn btn-g" style="padding:6px 12px;font-size:13px" onclick="document.getElementById('nrn${i}').style.display='none'">İptal</button>`;setTimeout(()=>{const inp=document.getElementById("nri"+i);inp?.focus();inp?.select()},50)}
+function frNb(i){const nm=document.getElementById("nri"+i)?.value.trim();if(!nm)return;NB[i].name=nm;sv("nb",NB);rNP()}
+function uND(){const tot=NB.reduce((a,n)=>a+n.notes.length,0);["lnd","rnd"].forEach(id=>{const e=document.getElementById(id);if(e)e.classList.toggle("hidden",!tot)})}
+
+// ═══════════════════════════════════════════
+// SETTINGS
+// ═══════════════════════════════════════════
+function openSettings(){rSP();document.getElementById("ovs").classList.add("open")}
+function closeSettings(){document.getElementById("ovs").classList.remove("open")}
+function rSP(){
+  const tC={day:"#f5f0e8",sepia:"#f1e4c8",night:"#1a1a22"},tT={day:"#2c2416",sepia:"#3e2d13",night:"#c8c0b0"},tL={day:"☀️ Gündüz",sepia:"📜 Sepya",night:"🌙 Gece"};
+  let h=`<div class="ph"><h3>Ayarlar</h3><button class="btn-i" onclick="closeSettings()">${ic("x")}</button></div>`;
+  h+=`<div class="sg"><span class="sl">Okuma Modu</span><div class="tr">${["day","sepia","night"].map(t=>`<button class="${ST.theme===t?"on":""}" style="background:${tC[t]};color:${tT[t]}" onclick="sT('${t}');rSP();if(P.length)renderPages()">${tL[t]}</button>`).join("")}</div></div>`;
+  h+=`<div class="sg"><span class="sl">Yazı Tipi</span><div class="fl">${FTS.map(f=>`<button class="${ST.ff===f.f?"on":""}" style="font-family:${f.f}" onclick="ST.ff='${f.f}';sv('st',ST);rSP();if(P.length)renderPages()">${f.n} — Örnek metin</button>`).join("")}</div></div>`;
+  h+=`<div class="sg"><span class="sl">Yazı Boyutu: ${ST.fs}px</span><div class="sr">${SZS.map(s=>`<button class="${ST.fs===s?"on":""}" onclick="ST.fs=${s};sv('st',ST);rSP();if(P.length)renderPages()">${s}</button>`).join("")}</div></div>`;
+  h+=`<div class="sg"><span class="sl">Yazı Kalınlığı</span><div class="wr">${WTS.map(w=>`<button class="${ST.fw===w.v?"on":""}" style="font-weight:${w.v}" onclick="ST.fw=${w.v};sv('st',ST);rSP();if(P.length)renderPages()">${w.l}</button>`).join("")}</div></div>`;
+  document.getElementById("ps").innerHTML=h;
+}
+
+// ═══════════════════════════════════════════
+// KEYBOARD
+// ═══════════════════════════════════════════
+document.addEventListener("keydown",e=>{
+  if(!P.length)return;
+  if(["INPUT","TEXTAREA","SELECT"].includes(e.target.tagName))return;
+  if(e.key==="ArrowRight"||e.key==="ArrowDown")goNext();
+  if(e.key==="ArrowLeft"||e.key==="ArrowUp")goPrev();
+});
+
+// ═══════════════════════════════════════════
+// INSTALL GUIDE
+// ═══════════════════════════════════════════
+function openInstall(){document.getElementById("ov-install").classList.add("open")}
+function closeInstall(){document.getElementById("ov-install").classList.remove("open")}
+
+function showPwaBanner(){
+  if(localStorage.getItem("ug_pwa_dismissed"))return;
+  if(window.matchMedia&&window.matchMedia('(display-mode: standalone)').matches)return;
+  if(mob())setTimeout(()=>document.getElementById("pwa-banner").classList.add("show"),3000);
+}
+function closePwaBanner(){
+  document.getElementById("pwa-banner").classList.remove("show");
+  localStorage.setItem("ug_pwa_dismissed","1");
+}
+
+// Hide install button if already standalone
+if(window.matchMedia&&window.matchMedia('(display-mode: standalone)').matches){
+  const ib=document.getElementById("install-btn");if(ib)ib.style.display="none";
+}else if(mob()){showPwaBanner()}
+
+// ═══════════════════════════════════════════
+// INIT
+// ═══════════════════════════════════════════
+aT();rL();
+
+// Register Service Worker for PWA
+if('serviceWorker' in navigator){
+  navigator.serviceWorker.register('sw.js').catch(()=>{});
+}
+</script>
+</body>
+</html>
