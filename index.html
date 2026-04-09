@@ -2,141 +2,165 @@
 <html lang="tr">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<meta name="viewport" content="width=device-width,initial-scale=1,user-scalable=no,viewport-fit=cover">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
-<meta name="theme-color" content="#f5f0e8">
+<meta name="theme-color" content="#1c1f2b">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <link rel="manifest" href="manifest.json">
 <link rel="icon" type="image/png" sizes="192x192" href="icon-192.png">
 <link rel="apple-touch-icon" href="icon-192.png">
-<title>Uğuro — E-Kitap Okuyucu</title>
+<title>UBRY — E-Kitap Okuyucu</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Merriweather:wght@300;400;700&family=Lora:wght@400;600;700&family=Literata:opsz,wght@7..72,300;7..72,400;7..72,600;7..72,700&family=Source+Serif+4:opsz,wght@8..60,300;8..60,400;8..60,600;8..60,700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Merriweather:wght@300;400;700&family=Lora:wght@400;600;700&family=Literata:opsz,wght@7..72,300;7..72,400;7..72,600;7..72,700&family=Source+Serif+4:opsz,wght@8..60,300;8..60,400;8..60,600;8..60,700&family=Playfair+Display:wght@400;600;700&display=swap" rel="stylesheet">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
 <style>
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
 html,body{height:100%;overflow:hidden;-webkit-tap-highlight-color:transparent}
-body{font-family:Georgia,'Times New Roman',serif;transition:background .3s,color .3s}
-::-webkit-scrollbar{width:6px}::-webkit-scrollbar-track{background:transparent}::-webkit-scrollbar-thumb{background:var(--border);border-radius:3px}
-::selection{background:var(--accent);color:#fff}
+body{font-family:Georgia,'Times New Roman',serif;transition:background .35s,color .35s}
+::-webkit-scrollbar{width:5px}::-webkit-scrollbar-track{background:transparent}::-webkit-scrollbar-thumb{background:var(--border);border-radius:3px}
+::selection{background:var(--gold);color:#1a1a22}
 
-body.t-day{--bg:#f5f0e8;--text:#2c2416;--accent:#8b6914;--surface:#ebe4d6;--border:#d4c9b4;--muted:#7a6e5c;--highlight:#e8d9a0;--note-bg:#faf6ec;--header:#ece5d4;--card:#fff8ec;--shadow:rgba(44,36,22,.08)}
-body.t-sepia{--bg:#f1e4c8;--text:#3e2d13;--accent:#9e6b1a;--surface:#e8d7b4;--border:#d1bf97;--muted:#7a6240;--highlight:#f0d88a;--note-bg:#f8f0da;--header:#e6d5b2;--card:#f6ebd0;--shadow:rgba(62,45,19,.08)}
-body.t-night{--bg:#1a1a22;--text:#c8c0b0;--accent:#c9a84c;--surface:#252530;--border:#3a3a4a;--muted:#787068;--highlight:#3d3520;--note-bg:#22222e;--header:#20202a;--card:#2a2a36;--shadow:rgba(0,0,0,.3)}
+/* ═══ THEME VARS ═══ */
+body.t-day{--bg:#f4efe6;--text:#2a2015;--gold:#b08d3e;--gold2:#8b6914;--surface:#ebe4d4;--border:#d4c9b4;--muted:#8a7e6c;--highlight:rgba(176,141,62,.12);--note-bg:#faf6ec;--header:rgba(236,229,212,.92);--card:#fffaf0;--shadow:rgba(44,36,22,.1);--cover-grad:linear-gradient(135deg,#c4a44a22,#e8d9a044)}
+body.t-sepia{--bg:#eee1c5;--text:#3e2d13;--gold:#a06e1a;--gold2:#9e6b1a;--surface:#e2d3b0;--border:#ccba93;--muted:#7a6240;--highlight:rgba(160,110,26,.12);--note-bg:#f5ecda;--header:rgba(226,211,178,.92);--card:#f2e8d0;--shadow:rgba(62,45,19,.1);--cover-grad:linear-gradient(135deg,#a06e1a22,#f0d88a44)}
+body.t-night{--bg:#13151e;--text:#c5bda8;--gold:#c9a84c;--gold2:#a08030;--surface:#1e2030;--border:#2e3044;--muted:#706858;--highlight:rgba(201,168,76,.1);--note-bg:#1a1c28;--header:rgba(26,28,40,.92);--card:#1e2030;--shadow:rgba(0,0,0,.4);--cover-grad:linear-gradient(135deg,#c9a84c15,#3d352025)}
 body{background:var(--bg);color:var(--text)}
 
+/* ═══ UTILITY ═══ */
 .hidden{display:none!important}
-.overlay{position:fixed;inset:0;z-index:900;background:rgba(0,0,0,.45);display:none;align-items:center;justify-content:center;padding:16px}
+.overlay{position:fixed;inset:0;z-index:900;background:rgba(0,0,0,.5);display:none;align-items:center;justify-content:center;padding:16px;backdrop-filter:blur(4px);-webkit-backdrop-filter:blur(4px)}
 .overlay.open{display:flex}.overlay.side{justify-content:flex-end}
-.panel{background:var(--note-bg);border-radius:14px;padding:24px;max-width:460px;width:100%;box-shadow:0 20px 60px var(--shadow);border:1px solid var(--border);max-height:90vh;overflow-y:auto}
-.side-panel{width:420px;height:100%;background:var(--note-bg);overflow-y:auto;box-shadow:-4px 0 30px var(--shadow);border-left:1px solid var(--border);border-radius:0}
-.btn{border:none;cursor:pointer;font-family:inherit;border-radius:8px;transition:all .2s;display:inline-flex;align-items:center;justify-content:center;gap:6px}
-.btn-p{background:var(--accent);color:#fff;padding:8px 20px;font-size:14px;font-weight:600}
-.btn-p:hover{filter:brightness(1.1)}
-.btn-g{background:none;border:1px solid var(--border);color:var(--text);padding:8px 16px;font-size:14px}
-.btn-g:hover{background:var(--surface)}
-.btn-i{background:none;border:none;cursor:pointer;color:var(--text);padding:6px;border-radius:8px;display:flex;align-items:center;transition:color .2s,transform .2s}
+.panel{background:var(--note-bg);border-radius:16px;padding:24px;max-width:460px;width:100%;box-shadow:0 24px 80px var(--shadow);border:1px solid var(--border);max-height:90vh;overflow-y:auto}
+.side-panel{width:420px;height:100%;background:var(--note-bg);overflow-y:auto;box-shadow:-8px 0 40px var(--shadow);border-left:1px solid var(--border)}
+.btn{border:none;cursor:pointer;font-family:inherit;border-radius:10px;transition:all .2s;display:inline-flex;align-items:center;justify-content:center;gap:6px;font-size:14px}
+.btn-p{background:linear-gradient(135deg,var(--gold),var(--gold2));color:#fff;padding:10px 22px;font-weight:600;box-shadow:0 2px 12px rgba(176,141,62,.25)}
+.btn-p:hover{filter:brightness(1.1);transform:translateY(-1px)}
+.btn-p:active{transform:scale(.97)}
+.btn-g{background:var(--surface);border:1px solid var(--border);color:var(--text);padding:8px 16px}
+.btn-g:hover{background:var(--border)}
+.btn-i{background:none;border:none;cursor:pointer;color:var(--text);padding:8px;border-radius:10px;display:flex;align-items:center;transition:all .2s}
 .btn-i:hover{background:var(--surface)}
-.inp{width:100%;padding:8px 12px;border-radius:8px;border:1px solid var(--border);background:var(--surface);color:var(--text);font-size:14px;outline:none;font-family:inherit}
-.inp:focus{border-color:var(--accent)}
+.btn-i:active{transform:scale(.9)}
+.inp{width:100%;padding:10px 14px;border-radius:10px;border:1px solid var(--border);background:var(--surface);color:var(--text);font-size:14px;outline:none;font-family:inherit;transition:border-color .2s}
+.inp:focus{border-color:var(--gold)}
 .ph{display:flex;justify-content:space-between;align-items:center;margin-bottom:20px}
 .ph h3{font-size:18px;font-weight:700;margin:0}
 svg.ic{display:inline-block;vertical-align:middle;flex-shrink:0}
+.lbl{font-size:13px;color:var(--muted);display:block;margin-bottom:6px}
 
-#load-ov{position:fixed;inset:0;z-index:2000;background:var(--bg);display:none;flex-direction:column;align-items:center;justify-content:center;gap:16px;color:var(--text)}
+/* ═══ LOADING ═══ */
+#load-ov{position:fixed;inset:0;z-index:2000;background:var(--bg);display:none;flex-direction:column;align-items:center;justify-content:center;gap:20px}
 #load-ov.open{display:flex}
-.bar-t{width:260px;height:6px;background:var(--border);border-radius:3px;overflow:hidden}
-.bar-f{height:100%;background:var(--accent);border-radius:3px;transition:width .15s;width:0}
+#load-ov .logo-img{width:64px;height:64px;border-radius:16px;object-fit:cover}
+.bar-t{width:240px;height:5px;background:var(--border);border-radius:3px;overflow:hidden}
+.bar-f{height:100%;background:linear-gradient(90deg,var(--gold),var(--gold2));border-radius:3px;transition:width .15s}
 
-/* Library */
+/* ═══ TOAST ═══ */
+#save-toast{position:fixed;top:70px;left:50%;transform:translateX(-50%) translateY(-20px);background:linear-gradient(135deg,var(--gold),var(--gold2));color:#fff;padding:10px 24px;border-radius:24px;font-size:13px;font-weight:600;opacity:0;transition:opacity .3s,transform .3s;z-index:999;pointer-events:none;box-shadow:0 4px 20px rgba(176,141,62,.3)}
+#save-toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+
+/* ═══ LIBRARY ═══ */
 #lib{display:flex;flex-direction:column;height:100vh;overflow-y:auto}
-.lh{padding:24px 32px 0;display:flex;align-items:center;justify-content:space-between}
-.lh h1{font-size:32px;font-weight:700;background:linear-gradient(135deg,var(--accent),var(--text));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+.lh{padding:28px 32px 0;display:flex;align-items:center;justify-content:space-between}
+.lh .brand{display:flex;align-items:center;gap:12px}
+.lh .brand img{width:40px;height:40px;border-radius:10px}
+.lh h1{font-size:28px;font-weight:700;font-family:'Playfair Display',Georgia,serif;color:var(--gold)}
 .ls{padding:4px 32px 24px;font-size:14px;color:var(--muted)}
-.lg{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:20px;padding:0 32px 32px}
-.bc{background:var(--card);border:1px solid var(--border);border-radius:12px;overflow:hidden;cursor:pointer;transition:all .2s;position:relative}
-.bc:hover{transform:translateY(-3px);box-shadow:0 8px 24px var(--shadow)}
-.bcv{height:120px;background:linear-gradient(135deg,var(--accent)22,var(--highlight));display:flex;align-items:center;justify-content:center;font-size:40px;position:relative}
-.bpr{position:absolute;bottom:0;left:0;right:0;height:3px;background:var(--border)}.bpr .f{height:100%;background:var(--accent);border-radius:0 2px 2px 0}
-.bci{padding:12px 14px}.bt{font-size:14px;font-weight:600;line-height:1.3;margin-bottom:4px;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
-.ba{font-size:12px;color:var(--muted)}
-.bdl{position:absolute;top:8px;right:8px;width:28px;height:28px;border-radius:50%;background:rgba(0,0,0,.5);color:#fff;border:none;cursor:pointer;display:none;align-items:center;justify-content:center;font-size:16px;z-index:5}
+.lib-ctrls{display:flex;gap:6px;align-items:center}
+.lg{display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:20px;padding:0 32px 32px}
+.bc{background:var(--card);border:1px solid var(--border);border-radius:14px;overflow:hidden;cursor:pointer;transition:all .25s;position:relative}
+.bc:hover{transform:translateY(-4px);box-shadow:0 12px 32px var(--shadow)}
+.bc:active{transform:scale(.97)}
+.bcv{height:140px;background:var(--cover-grad);display:flex;align-items:center;justify-content:center;font-size:42px;position:relative;overflow:hidden}
+.bcv img{width:100%;height:100%;object-fit:cover}
+.bpr{position:absolute;bottom:0;left:0;right:0;height:3px;background:rgba(0,0,0,.15)}.bpr .f{height:100%;background:var(--gold);border-radius:0 2px 2px 0}
+.bci{padding:12px 14px}.bt{font-size:13px;font-weight:600;line-height:1.3;margin-bottom:3px;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.ba{font-size:11px;color:var(--muted)}
+.bdl{position:absolute;top:8px;right:8px;width:30px;height:30px;border-radius:50%;background:rgba(0,0,0,.6);color:#fff;border:none;cursor:pointer;display:none;align-items:center;justify-content:center;font-size:16px;z-index:5;backdrop-filter:blur(4px)}
 .bc:hover .bdl{display:flex}
-.ac{border:2px dashed var(--border);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;min-height:180px;border-radius:12px;cursor:pointer;transition:all .2s;color:var(--muted);font-size:14px}
-.ac:hover{border-color:var(--accent);color:var(--accent);background:var(--surface)}
+.ac{border:2px dashed var(--border);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;min-height:200px;border-radius:14px;cursor:pointer;transition:all .25s;color:var(--muted);font-size:14px}
+.ac:hover{border-color:var(--gold);color:var(--gold);background:var(--highlight)}
 
-/* Header */
-#hdr{position:sticky;top:0;z-index:100;background:var(--header);border-bottom:1px solid var(--border);padding:10px 20px;display:flex;align-items:center;justify-content:space-between;backdrop-filter:blur(10px)}
-.logo{font-weight:700;font-size:18px;color:var(--accent);cursor:pointer}
-.fn{font-size:12px;color:var(--muted);margin-left:12px;max-width:220px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.hc{display:flex;align-items:center;gap:4px}
-.pt{font-size:12px;color:var(--muted);margin-right:6px}
-.nd{position:absolute;top:3px;right:3px;width:7px;height:7px;border-radius:50%;background:var(--accent)}
+/* ═══ HEADER ═══ */
+#hdr{position:sticky;top:0;z-index:100;background:var(--header);border-bottom:1px solid var(--border);padding:8px 16px;display:flex;align-items:center;justify-content:space-between;backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px)}
+.hdr-left{display:flex;align-items:center;gap:10px}
+.hdr-left img{width:28px;height:28px;border-radius:7px}
+.logo{font-weight:700;font-size:17px;color:var(--gold);cursor:pointer;font-family:'Playfair Display',Georgia,serif}
+.fn{font-size:11px;color:var(--muted);max-width:160px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.hc{display:flex;align-items:center;gap:2px}
+.pt{font-size:12px;color:var(--muted);margin-right:4px;cursor:pointer;padding:4px 8px;border-radius:8px;transition:background .2s}
+.pt:hover{background:var(--surface)}
+.nd{position:absolute;top:2px;right:2px;width:7px;height:7px;border-radius:50%;background:var(--gold)}
 
-#pb{height:3px;background:var(--border)}#pb .f{height:100%;background:var(--accent);transition:width .3s;border-radius:0 2px 2px 0}
+#pb{height:3px;background:var(--border)}#pb .f{height:100%;background:linear-gradient(90deg,var(--gold),var(--gold2));transition:width .3s;border-radius:0 2px 2px 0}
 
-/* Reader */
+/* ═══ READER ═══ */
 #rdr{display:none;flex-direction:column;height:100vh}#rdr.open{display:flex}
-#pd{flex:1;display:grid;grid-template-columns:repeat(4,1fr);gap:0;padding:20px 16px;max-width:1600px;margin:0 auto;width:100%;align-items:stretch;overflow:hidden}
-.pg{padding:32px 36px 44px;position:relative;line-height:1.78;user-select:text;-webkit-user-select:text;overflow-wrap:break-word;word-break:break-word;overflow-y:auto}
+#pd{flex:1;display:grid;grid-template-columns:repeat(4,1fr);gap:0;padding:16px 12px;max-width:1600px;margin:0 auto;width:100%;align-items:stretch;overflow:hidden}
+.pg{padding:28px 32px 40px;position:relative;line-height:1.78;user-select:text;-webkit-user-select:text;overflow-wrap:break-word;word-break:break-word;overflow-y:auto}
 .pg p{margin:0 0 .9em;text-align:justify}.pg p+p{text-indent:1.5em}
-.pg h1,.pg h2,.pg h3,.pg h4{margin:0 0 .6em;text-indent:0!important;text-align:left;line-height:1.3}.pg h3{font-size:1.15em}
-.pg .pn{position:sticky;bottom:0;left:0;right:0;text-align:center;font-size:12px;color:var(--muted);font-weight:400;background:var(--bg);padding:8px 0 4px;margin-top:8px}
-.pgb{border-right:1px solid var(--border)}.pge{background:var(--surface);opacity:.2;min-height:300px;border-radius:6px}
+.pg h1,.pg h2,.pg h3,.pg h4{margin:1em 0 .5em;text-indent:0!important;text-align:left;line-height:1.3;color:var(--gold)}.pg h3{font-size:1.15em}
+.pg img{max-width:100%;height:auto;border-radius:8px;margin:12px 0;display:block}
+.pg .pn{position:sticky;bottom:0;text-align:center;font-size:11px;color:var(--muted);background:var(--bg);padding:8px 0 2px;margin-top:12px}
+.pgb{border-right:1px solid var(--border)}.pge{background:var(--surface);opacity:.15;min-height:200px;border-radius:8px}
 
-#navb{padding:12px 24px;display:flex;justify-content:center;align-items:center;gap:24px;border-top:1px solid var(--border);background:var(--header)}
-#navb .pi{font-size:14px;color:var(--muted)}
+#navb{padding:10px 20px;display:flex;justify-content:center;align-items:center;gap:16px;border-top:1px solid var(--border);background:var(--header);backdrop-filter:blur(12px)}
+#navb .pi{font-size:13px;color:var(--muted)}
 #pm{flex:1;overflow-y:auto;display:none;scroll-behavior:smooth}
 #pm .pg{padding:20px 24px 40px;border-bottom:1px solid var(--border)}
 
-/* Settings */
-.sg{margin-bottom:20px}.sl{font-size:13px;color:var(--muted);display:block;margin-bottom:8px}
-.tr{display:flex;gap:8px}.tr button{flex:1;padding:10px 0;border-radius:8px;cursor:pointer;font-size:13px;font-weight:600;transition:all .2s;border:1px solid var(--border)}.tr button.on{border:2px solid var(--accent);background:var(--surface)}
-.fl{display:flex;flex-direction:column;gap:5px}.fl button{padding:10px 14px;border-radius:8px;text-align:left;border:1px solid var(--border);background:transparent;color:var(--text);cursor:pointer;font-size:15px;transition:all .2s}.fl button.on{border:2px solid var(--accent);background:var(--surface)}
-.sr,.wr{display:flex;gap:6px;flex-wrap:wrap}
-.sr button{width:40px;height:40px;border-radius:8px;display:flex;align-items:center;justify-content:center;border:1px solid var(--border);background:transparent;color:var(--text);cursor:pointer;font-size:13px;font-weight:600}.sr button.on{border:2px solid var(--accent);background:var(--surface)}
-.wr button{flex:1;padding:10px 0;border-radius:8px;border:1px solid var(--border);background:transparent;color:var(--text);cursor:pointer;font-size:13px}.wr button.on{border:2px solid var(--accent);background:var(--surface)}
+/* ═══ TOC ═══ */
+.toc-list{max-height:60vh;overflow-y:auto}
+.toc-item{padding:12px 16px;border-bottom:1px solid var(--border);cursor:pointer;font-size:14px;transition:all .2s;display:flex;justify-content:space-between;align-items:center;border-radius:8px;margin-bottom:2px}
+.toc-item:hover{background:var(--highlight);color:var(--gold)}
+.toc-item .toc-pg{font-size:12px;color:var(--muted);flex-shrink:0;margin-left:12px}
 
-/* Notes */
-.nq{background:var(--highlight);border-radius:8px;padding:12px;margin-bottom:16px;border-left:3px solid var(--accent);font-size:14px;line-height:1.5;font-style:italic}
+/* ═══ PAGE JUMP ═══ */
+.jump-row{display:flex;gap:8px;align-items:center}
+.jump-row input{width:80px;text-align:center;font-size:16px;font-weight:600}
+
+/* ═══ SETTINGS / NOTES ═══ */
+.sg{margin-bottom:20px}
+.tr{display:flex;gap:8px}.tr button{flex:1;padding:12px 0;border-radius:10px;cursor:pointer;font-size:13px;font-weight:600;transition:all .2s;border:1px solid var(--border)}.tr button.on{border:2px solid var(--gold);background:var(--highlight)}
+.fl{display:flex;flex-direction:column;gap:5px}.fl button{padding:12px 14px;border-radius:10px;text-align:left;border:1px solid var(--border);background:transparent;color:var(--text);cursor:pointer;font-size:15px;transition:all .2s}.fl button.on{border:2px solid var(--gold);background:var(--highlight)}
+.sr,.wr{display:flex;gap:6px;flex-wrap:wrap}
+.sr button{width:42px;height:42px;border-radius:10px;display:flex;align-items:center;justify-content:center;border:1px solid var(--border);background:transparent;color:var(--text);cursor:pointer;font-size:13px;font-weight:600}.sr button.on{border:2px solid var(--gold);background:var(--highlight)}
+.wr button{flex:1;padding:12px 0;border-radius:10px;border:1px solid var(--border);background:transparent;color:var(--text);cursor:pointer;font-size:13px}.wr button.on{border:2px solid var(--gold);background:var(--highlight)}
+
+.nq{background:var(--highlight);border-radius:10px;padding:14px;margin-bottom:16px;border-left:3px solid var(--gold);font-size:14px;line-height:1.5;font-style:italic}
 .nq .meta{font-size:11px;color:var(--muted);margin-bottom:4px;font-style:normal}
-.nbh{padding:20px 24px;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:center;position:sticky;top:0;background:var(--header);z-index:2}
-.nbh h2{margin:0;font-size:20px;font-weight:700;display:flex;align-items:center;gap:8px}
+.nbh{padding:20px 24px;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:center;position:sticky;top:0;background:var(--header);z-index:2;backdrop-filter:blur(12px)}
+.nbh h2{margin:0;font-size:18px;font-weight:700;display:flex;align-items:center;gap:8px;font-family:'Playfair Display',Georgia,serif}
 .nbi{border-bottom:1px solid var(--border)}
-.nbih{padding:14px 24px;cursor:pointer;display:flex;justify-content:space-between;align-items:center;transition:background .2s}.nbih:hover{background:var(--surface)}
-.nbn{background:var(--bg);border-radius:8px;padding:12px;margin-top:8px;border:1px solid var(--border);font-size:13px}
-.nbn .qr{border-left:3px solid var(--accent);padding-left:10px;margin-bottom:8px;font-style:italic;color:var(--muted);line-height:1.4}
+.nbih{padding:14px 24px;cursor:pointer;display:flex;justify-content:space-between;align-items:center;transition:background .2s}.nbih:hover{background:var(--highlight)}
+.nbn{background:var(--bg);border-radius:10px;padding:12px;margin-top:8px;border:1px solid var(--border);font-size:13px}
+.nbn .qr{border-left:3px solid var(--gold);padding-left:10px;margin-bottom:8px;font-style:italic;color:var(--muted);line-height:1.4}
 .nbn .nf{display:flex;justify-content:space-between;align-items:center;margin-top:8px}
 .nbn .nt{font-size:11px;color:var(--muted)}
 .nbe{padding:40px 24px;text-align:center;color:var(--muted)}
 .nbcr{padding:12px 24px;border-bottom:1px solid var(--border);display:flex;gap:8px}
 .nber{display:flex;gap:6px;align-items:center;padding:4px 24px 8px}
 
-/* Save toast */
-#save-toast{position:fixed;top:60px;left:50%;transform:translateX(-50%) translateY(-20px);background:var(--accent);color:#fff;padding:8px 20px;border-radius:20px;font-size:13px;font-weight:600;opacity:0;transition:opacity .3s,transform .3s;z-index:999;pointer-events:none}
-#save-toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
-
-/* PWA Install Banner */
-#pwa-banner{position:fixed;bottom:0;left:0;right:0;background:var(--header);border-top:1px solid var(--border);padding:14px 20px;display:none;align-items:center;justify-content:space-between;z-index:800;box-shadow:0 -4px 20px var(--shadow);gap:12px}
+/* ═══ INSTALL BANNER ═══ */
+#pwa-banner{position:fixed;bottom:0;left:0;right:0;background:var(--header);border-top:1px solid var(--border);padding:14px 20px;display:none;align-items:center;justify-content:space-between;z-index:800;box-shadow:0 -4px 20px var(--shadow);gap:12px;backdrop-filter:blur(12px)}
 #pwa-banner.show{display:flex}
 #pwa-banner .msg{font-size:13px;line-height:1.4;flex:1}
-#pwa-banner .msg b{color:var(--accent)}
-#pwa-banner .close-banner{background:none;border:none;color:var(--muted);cursor:pointer;padding:4px;font-size:18px;flex-shrink:0}
+#pwa-banner .msg b{color:var(--gold)}
+#pwa-banner .close-banner{background:none;border:none;color:var(--muted);cursor:pointer;padding:4px;font-size:20px}
 
 @media(max-width:767px){
   #pd,#navb{display:none!important}#pm{display:block!important}
-  .side-panel{width:100%}.fn{max-width:90px}
-  .panel{max-width:100%;border-radius:10px;padding:18px}
+  .side-panel{width:100%}.fn{max-width:80px}
+  .panel{max-width:100%;border-radius:12px;padding:18px}
   .lh{padding:20px 20px 0}.ls{padding:4px 20px 20px}
-  .lg{grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:14px;padding:0 20px 20px}
+  .lg{grid-template-columns:repeat(auto-fill,minmax(130px,1fr));gap:14px;padding:0 20px 20px}
+  .bcv{height:110px}
 }
-@media(min-width:768px){
-  #pm{display:none!important}
-}
+@media(min-width:768px){#pm{display:none!important}}
 </style>
 </head>
-<body class="t-day">
+<body class="t-night">
 
 <svg style="display:none">
 <symbol id="i-book" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M4 19.5A2.5 2.5 0 0 0 6.5 22H20V2H6.5A2.5 2.5 0 0 0 4 4.5v15z"/></symbol>
@@ -154,58 +178,33 @@ svg.ic{display:inline-block;vertical-align:middle;flex-shrink:0}
 <symbol id="i-cd" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></symbol>
 <symbol id="i-cu" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="18 15 12 9 6 15"/></symbol>
 <symbol id="i-home" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></symbol>
+<symbol id="i-list" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/></symbol>
+<symbol id="i-hash" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="4" y1="9" x2="20" y2="9"/><line x1="4" y1="15" x2="20" y2="15"/><line x1="10" y1="3" x2="8" y2="21"/><line x1="16" y1="3" x2="14" y2="21"/></symbol>
 </svg>
 
-<div id="load-ov"><div style="font-size:24px;font-weight:700;color:var(--accent)">Uğuro</div><div class="bar-t"><div class="bar-f" id="lf"></div></div><div style="font-size:14px;color:var(--muted)" id="lt">Yükleniyor...</div></div>
+<div id="load-ov"><img src="icon-192.png" class="logo-img" onerror="this.style.display='none'"><div style="font-size:22px;font-weight:700;color:var(--gold);font-family:'Playfair Display',serif">UBRY</div><div class="bar-t"><div class="bar-f" id="lf"></div></div><div style="font-size:13px;color:var(--muted)" id="lt">Yükleniyor...</div></div>
 <div id="save-toast">✓ Kaydedildi</div>
 
-<!-- Install Guide Banner -->
-<div id="pwa-banner">
-  <div class="msg">
-    📱 <b>Uygulama olarak kullanmak için:</b><br>
-    Chrome menüsü (⋮) → <b>"Ana ekrana ekle"</b>
-  </div>
-  <button class="close-banner" onclick="closePwaBanner()">✕</button>
-</div>
+<div id="pwa-banner"><div class="msg">📱 <b>Uygulama olarak yükle:</b> Chrome menüsü (⋮) → <b>"Ana ekrana ekle"</b></div><button class="close-banner" onclick="closePwaBanner()">✕</button></div>
 
-<!-- Install Help Overlay -->
-<div class="overlay" id="ov-install" onclick="closeInstall()">
-  <div class="panel" onclick="event.stopPropagation()" id="p-install" style="max-width:400px">
-    <div class="ph"><h3>📱 Telefonuna Yükle</h3><button class="btn-i" onclick="closeInstall()"><svg class="ic" width="18" height="18"><use href="#i-x"/></svg></button></div>
-    <div style="font-size:14px;line-height:1.7;color:var(--text)">
-      <p style="margin-bottom:16px">Uğuro'yu uygulama gibi kullanmak için:</p>
-      <div style="background:var(--surface);border-radius:10px;padding:16px;margin-bottom:12px">
-        <div style="font-weight:700;color:var(--accent);margin-bottom:8px">Chrome ile:</div>
-        <div style="margin-bottom:6px">1. Bu dosyayı <b>Chrome</b>'da aç</div>
-        <div style="margin-bottom:6px">2. Sağ üstte <b>⋮</b> (üç nokta) menüsüne dokun</div>
-        <div style="margin-bottom:6px">3. <b>"Ana ekrana ekle"</b> seçeneğine dokun</div>
-        <div>4. <b>"Ekle"</b> diye onayla ✓</div>
-      </div>
-      <div style="background:var(--surface);border-radius:10px;padding:16px;margin-bottom:12px">
-        <div style="font-weight:700;color:var(--accent);margin-bottom:8px">Samsung Internet ile:</div>
-        <div style="margin-bottom:6px">1. Menü (≡) → <b>"Sayfayı ekle"</b></div>
-        <div>2. <b>"Ana ekran"</b> seç</div>
-      </div>
-      <p style="font-size:13px;color:var(--muted);margin-top:12px">Ana ekranda Uğuro ikonu belirecek. Dokunduğunda tam ekran açılır, uygulama gibi çalışır.</p>
-    </div>
-  </div>
-</div>
-
+<!-- LIBRARY -->
 <div id="lib">
-  <div class="lh"><h1>Uğuro</h1><div style="display:flex;gap:8px;align-items:center">
-    <button class="btn-i" onclick="openInstall()" title="Yükle" id="install-btn"><svg class="ic" width="20" height="20"><use href="#i-upload"/></svg></button>
+  <div class="lh"><div class="brand"><img src="icon-192.png" onerror="this.style.display='none'"><h1>UBRY</h1></div><div class="lib-ctrls">
+    <button class="btn-i" onclick="openInstall()" title="Yükle" id="install-btn">${ic("upload",20)}</button>
     <button class="btn-i" onclick="openNotes()" title="Notlar" style="position:relative"><svg class="ic" width="20" height="20"><use href="#i-note"/></svg><span class="nd hidden" id="lnd"></span></button>
     <button class="btn-i" onclick="cycleTheme()" title="Tema"><svg class="ic" width="20" height="20" id="lti"><use href="#i-sun"/></svg></button>
   </div></div>
-  <div class="ls">E-kitap okuyucu — EPUB ve TXT destekli</div>
+  <div class="ls">E-Kitap Okuyucu</div>
   <div class="lg" id="lg"></div>
 </div>
 
+<!-- READER -->
 <div id="rdr">
   <div id="hdr">
-    <div style="display:flex;align-items:center"><span class="logo" onclick="goHome()" id="logo-btn">Uğuro</span><span class="fn" id="rfn"></span></div>
+    <div class="hdr-left"><img src="icon-192.png" style="width:28px;height:28px;border-radius:7px" onerror="this.style.display='none'"><span class="logo" onclick="goHome()">UBRY</span><span class="fn" id="rfn"></span></div>
     <div class="hc">
-      <span class="pt" id="rpt">%0</span>
+      <span class="pt" id="rpt" onclick="openJump()" title="Sayfaya Git">%0</span>
+      <button class="btn-i" onclick="openToc()" title="İçindekiler"><svg class="ic" width="18" height="18"><use href="#i-list"/></svg></button>
       <button class="btn-i" onclick="cycleTheme()" title="Tema" id="rti"><svg class="ic" width="18" height="18"><use href="#i-sun"/></svg></button>
       <button class="btn-i" onclick="openSettings()" title="Ayarlar"><svg class="ic" width="18" height="18"><use href="#i-settings"/></svg></button>
       <button class="btn-i" onclick="openNotes()" title="Notlar" style="position:relative"><svg class="ic" width="18" height="18"><use href="#i-note"/></svg><span class="nd hidden" id="rnd"></span></button>
@@ -217,445 +216,294 @@ svg.ic{display:inline-block;vertical-align:middle;flex-shrink:0}
   <div id="pm"></div>
   <div id="navb">
     <button class="btn btn-g" id="pbtn" onclick="goPrev()"><svg class="ic" width="16" height="16"><use href="#i-left"/></svg> Önceki</button>
-    <span class="pi" id="pgi"></span>
+    <span class="pi" id="pgi" onclick="openJump()" style="cursor:pointer"></span>
     <button class="btn btn-g" id="nbtn" onclick="goNext()">Sonraki <svg class="ic" width="16" height="16"><use href="#i-right"/></svg></button>
   </div>
 </div>
 
+<!-- OVERLAYS -->
 <div class="overlay" id="ovs" onclick="closeSettings()"><div class="panel" onclick="event.stopPropagation()" id="ps"></div></div>
 <div class="overlay" id="ovn" onclick="closeND()"><div class="panel" onclick="event.stopPropagation()" id="pn"></div></div>
 <div class="overlay side" id="ovnb" onclick="closeNotes()"><div class="side-panel" onclick="event.stopPropagation()" id="pnb"></div></div>
+<div class="overlay" id="ov-toc" onclick="closeToc()"><div class="panel" onclick="event.stopPropagation()" id="p-toc" style="max-width:400px"></div></div>
+<div class="overlay" id="ov-jump" onclick="closeJump()"><div class="panel" onclick="event.stopPropagation()" id="p-jump" style="max-width:340px"></div></div>
+<div class="overlay" id="ov-install" onclick="closeInstall()"><div class="panel" onclick="event.stopPropagation()" style="max-width:400px">
+  <div class="ph"><h3>📱 Telefonuna Yükle</h3><button class="btn-i" onclick="closeInstall()"><svg class="ic" width="18" height="18"><use href="#i-x"/></svg></button></div>
+  <div style="font-size:14px;line-height:1.7">
+    <div style="background:var(--surface);border-radius:12px;padding:16px;margin-bottom:12px">
+      <div style="font-weight:700;color:var(--gold);margin-bottom:8px">Chrome:</div>
+      <div style="margin-bottom:4px">1. Bu sayfayı <b>Chrome</b>'da aç</div>
+      <div style="margin-bottom:4px">2. Sağ üstte <b>⋮</b> menüsüne dokun</div>
+      <div style="margin-bottom:4px">3. <b>"Ana ekrana ekle"</b> seç</div>
+      <div>4. <b>"Ekle"</b> onayla ✓</div>
+    </div>
+    <p style="font-size:12px;color:var(--muted)">Not: file:// ile açtıysan bu seçenek görünmez. GitHub Pages'e yüklersen çalışır.</p>
+  </div>
+</div></div>
 <input type="file" id="fi" accept=".epub,.txt" style="display:none">
 
 <script>
-// ═══════════════════════════════════════════
-// CONFIG
-// ═══════════════════════════════════════════
-const COLS=4, CPP=2800;
-const FTS=[{n:"Georgia",f:"Georgia,'Times New Roman',serif"},{n:"Merriweather",f:"'Merriweather',Georgia,serif"},{n:"Lora",f:"'Lora',Georgia,serif"},{n:"Literata",f:"'Literata',Georgia,serif"},{n:"Source Serif",f:"'Source Serif 4',Georgia,serif"}];
+const COLS=4,CPP=2800;
+const FTS=[{n:"Georgia",f:"Georgia,'Times New Roman',serif"},{n:"Merriweather",f:"'Merriweather',Georgia,serif"},{n:"Lora",f:"'Lora',Georgia,serif"},{n:"Literata",f:"'Literata',Georgia,serif"},{n:"Source Serif",f:"'Source Serif 4',Georgia,serif"},{n:"Playfair Display",f:"'Playfair Display',Georgia,serif"}];
 const SZS=[14,16,18,20,22,24,28];
 const WTS=[{l:"İnce",v:300},{l:"Normal",v:400},{l:"Kalın",v:600},{l:"Çok Kalın",v:700}];
 
-// ═══════════════════════════════════════════
-// STATE
-// ═══════════════════════════════════════════
-let P=[], CP=1, BID=null;
-let ST=ld("st",{theme:"day",ff:"Georgia,'Times New Roman',serif",fs:18,fw:400});
+let P=[],CP=1,BID=null,TOC=[],IMGS={},COVER=null;
+let ST=ld("st",{theme:"night",ff:"Georgia,'Times New Roman',serif",fs:18,fw:400});
 let NB=ld("nb",[]);
 let LIB=ld("lib",[]);
 
-function ld(k,fb){try{const v=localStorage.getItem("ug_"+k);return v?JSON.parse(v):fb}catch{return fb}}
-function sv(k,v){try{localStorage.setItem("ug_"+k,JSON.stringify(v))}catch{}}
+function ld(k,fb){try{const v=localStorage.getItem("ub_"+k);return v?JSON.parse(v):fb}catch{return fb}}
+function sv(k,v){try{localStorage.setItem("ub_"+k,JSON.stringify(v))}catch{}}
 function mob(){return innerWidth<768}
 function ic(id,s=18){return`<svg class="ic" width="${s}" height="${s}"><use href="#i-${id}"/></svg>`}
 function esc(s){const d=document.createElement("div");d.textContent=s;return d.innerHTML}
 
-// ═══════════════════════════════════════════
-// THEME
-// ═══════════════════════════════════════════
-function aT(){
-  document.body.className="t-"+ST.theme;
-  const h=ST.theme==="night"?"#i-moon":"#i-sun";
-  const a=document.getElementById("lti");if(a)a.innerHTML=`<use href="${h}"/>`;
-  const b=document.getElementById("rti");if(b)b.innerHTML=`<svg class="ic" width="18" height="18"><use href="${h}"/></svg>`;
-}
+function aT(){document.body.className="t-"+ST.theme;const h=ST.theme==="night"?"#i-moon":"#i-sun";const a=document.getElementById("lti");if(a)a.innerHTML=`<use href="${h}"/>`;const b=document.getElementById("rti");if(b)b.innerHTML=`<svg class="ic" width="18" height="18"><use href="${h}"/></svg>`}
 function cycleTheme(){const o=["day","sepia","night"],i=o.indexOf(ST.theme);ST.theme=o[(i+1)%3];sv("st",ST);aT()}
 function sT(t){ST.theme=t;sv("st",ST);aT()}
 
-// ═══════════════════════════════════════════
-// EPUB PARSER
-// ═══════════════════════════════════════════
+// ═══ EPUB PARSER ═══
 async function parseEpub(buf,prog){
-  const zip=await JSZip.loadAsync(buf);prog(10,"EPUB açılıyor...");
+  const zip=await JSZip.loadAsync(buf);prog(8,"EPUB açılıyor...");
   const cxml=await zip.file("META-INF/container.xml").async("string");
-  const rm=cxml.match(/full-path="([^"]+)"/);
-  const rp=rm?rm[1]:"OEBPS/content.opf";
+  const rm=cxml.match(/full-path="([^"]+)"/);const rp=rm?rm[1]:"OEBPS/content.opf";
   const rd=rp.substring(0,rp.lastIndexOf("/")+1);
-  const opf=await zip.file(rp).async("string");prog(15,"İçindekiler...");
+  const opf=await zip.file(rp).async("string");prog(12,"İçindekiler okunuyor...");
   const tM=opf.match(/<dc:title[^>]*>([^<]+)<\/dc:title>/);
   const aM=opf.match(/<dc:creator[^>]*>([^<]+)<\/dc:creator>/);
   const title=tM?tM[1].trim():"Bilinmeyen Kitap";
   const author=aM?aM[1].trim():"";
+  // Manifest
   const mf={};let mm;const mR=/<item\s+([^>]+)>/g;
   while((mm=mR.exec(opf))!==null){const a=mm[1],id=a.match(/id="([^"]+)"/),hr=a.match(/href="([^"]+)"/),mt=a.match(/media-type="([^"]+)"/);if(id&&hr)mf[id[1]]={h:hr[1],m:mt?mt[1]:""};}
+  // Spine
   const sp=[];let sm;const sR=/<itemref\s+idref="([^"]+)"/g;
   while((sm=sR.exec(opf))!==null)sp.push(sm[1]);
-  const all=[];const tot=sp.length;
+  // Extract cover image
+  let coverData=null;
+  const coverMeta=opf.match(/name="cover"\s+content="([^"]+)"/);
+  if(coverMeta&&mf[coverMeta[1]]){
+    const ci=mf[coverMeta[1]];
+    try{const cf=zip.file(rd+ci.h);if(cf){const b=await cf.async("base64");coverData="data:"+ci.m+";base64,"+b;prog(15,"Kapak yüklendi...")}}catch{}
+  }
+  if(!coverData){// Try finding cover image by name
+    for(const[id,it]of Object.entries(mf)){
+      if(it.m.startsWith("image/")&&(id.includes("cover")||it.h.toLowerCase().includes("cover"))){
+        try{const cf=zip.file(rd+it.h);if(cf){const b=await cf.async("base64");coverData="data:"+it.m+";base64,"+b;break}}catch{}
+      }
+    }
+  }
+  // Extract all images
+  const images={};
+  for(const[id,it]of Object.entries(mf)){
+    if(it.m.startsWith("image/")){
+      try{const f=zip.file(rd+it.h);if(f){const b=await f.async("base64");images[it.h]="data:"+it.m+";base64,"+b}}catch{}
+    }
+  }
+  prog(20,"Bölümler okunuyor...");
+  // Read chapters
+  const toc=[];const all=[];const tot=sp.length;
   for(let i=0;i<tot;i++){
     const it=mf[sp[i]];if(!it||!it.m.includes("html"))continue;
     const fp=rd+it.h;const f=zip.file(fp);if(!f)continue;
     const html=await f.async("string");
     const bM=html.match(/<body[^>]*>([\s\S]*?)<\/body>/i);
     const bc=bM?bM[1]:html;
+    // Extract headings for TOC before stripping
+    const hMatch=bc.match(/<h[1-3][^>]*>([\s\S]*?)<\/h[1-3]>/i);
+    const chapterTitle=hMatch?hMatch[1].replace(/<[^>]+>/g,"").trim():null;
+    // Convert HTML, preserving images
     let c=bc
+      .replace(/<img\s+[^>]*src="([^"]*)"[^>]*>/gi,(_,src)=>{
+        const cleanSrc=src.replace(/^\.\.\//,"");
+        const dataUrl=images[cleanSrc]||images[src];
+        return dataUrl?"\n\n[IMG:"+dataUrl+"]\n\n":"";
+      })
       .replace(/<h[1-6][^>]*>([\s\S]*?)<\/h[1-6]>/gi,(_,t)=>{const x=t.replace(/<[^>]+>/g,"").trim();return x?"\n\n###"+x+"\n\n":""})
       .replace(/<br\s*\/?>/gi,"\n").replace(/<\/p>/gi,"\n\n").replace(/<p[^>]*>/gi,"")
       .replace(/<[^>]+>/g,"")
       .replace(/&nbsp;/gi," ").replace(/&amp;/gi,"&").replace(/&lt;/gi,"<").replace(/&gt;/gi,">").replace(/&quot;/gi,'"').replace(/&#(\d+);/g,(_,n)=>String.fromCharCode(+n))
       .replace(/\n{3,}/g,"\n\n").trim();
-    if(c.length>5)all.push(c);
-    prog(15+Math.round(i/tot*75),`Bölüm ${i+1}/${tot}`);
+    if(c.length>5){
+      if(chapterTitle)toc.push({title:chapterTitle,page:all.length});
+      all.push(c);
+    }
+    prog(20+Math.round(i/tot*70),`Bölüm ${i+1}/${tot}`);
   }
   prog(92,"Sayfalar oluşturuluyor...");
-  const pages=splitPages(all.join("\n\n"));
+  const fullText=all.join("\n\n");
+  const pages=splitPages(fullText);
+  // Remap TOC page numbers to actual page indices
+  let charPos=0;const chapterStarts=[];
+  for(const chunk of all){chapterStarts.push(charPos);charPos+=chunk.length+2}
+  const finalToc=toc.map(t=>{
+    const cp=chapterStarts[t.page]||0;
+    let pg=0,chars=0;
+    for(let i=0;i<pages.length;i++){chars+=pages[i].length+2;if(chars>=cp){pg=i;break}}
+    return{title:t.title,page:pg+1};
+  });
   prog(100,"Hazır!");
-  return{title,author,pages};
+  return{title,author,pages,toc:finalToc,cover:coverData,images};
 }
 
-function splitPages(text){
-  const pgs=[];const ps=text.split(/\n\n+/);let c="";
-  for(const p of ps){if((c+"\n\n"+p).length>CPP&&c){pgs.push(c.trim());c=p}else c+=(c?"\n\n":"")+p}
-  if(c.trim())pgs.push(c.trim());
-  return pgs;
-}
+function splitPages(text){const pgs=[];const ps=text.split(/\n\n+/);let c="";for(const p of ps){if((c+"\n\n"+p).length>CPP&&c){pgs.push(c.trim());c=p}else c+=(c?"\n\n":"")+p}if(c.trim())pgs.push(c.trim());return pgs}
+async function parseTxt(text,prog){prog(50,"İşleniyor...");const pages=splitPages(text);prog(100,"Hazır!");return{title:"Metin",author:"",pages,toc:[],cover:null,images:{}}}
 
-async function parseTxt(text,prog){
-  prog(50,"İşleniyor...");
-  const pages=splitPages(text);
-  prog(100,"Hazır!");
-  return{title:"Metin Dosyası",author:"",pages};
-}
-
-// ═══════════════════════════════════════════
-// LOADING
-// ═══════════════════════════════════════════
 function sL(){document.getElementById("load-ov").classList.add("open")}
 function hL(){document.getElementById("load-ov").classList.remove("open")}
-function sLP(p,m){document.getElementById("lf").style.width=p+"%";document.getElementById("lt").textContent=m||("% "+p)}
+function sLP(p,m){document.getElementById("lf").style.width=p+"%";document.getElementById("lt").textContent=m}
+function showToast(m){const t=document.getElementById("save-toast");t.textContent=m;t.classList.add("show");setTimeout(()=>t.classList.remove("show"),1200)}
 
-// ═══════════════════════════════════════════
-// TOAST
-// ═══════════════════════════════════════════
-function showToast(msg){
-  const t=document.getElementById("save-toast");
-  t.textContent=msg||"✓ Kaydedildi";
-  t.classList.add("show");
-  setTimeout(()=>t.classList.remove("show"),1200);
-}
-
-// ═══════════════════════════════════════════
-// LIBRARY
-// ═══════════════════════════════════════════
+// ═══ LIBRARY ═══
 function rL(){
-  document.getElementById("lib").classList.remove("hidden");
-  document.getElementById("rdr").classList.remove("open");
-  uND();
-  let h=`<div class="ac" onclick="document.getElementById('fi').click()">${ic("plus",32)}<span>Kitap Ekle</span></div>`;
+  document.getElementById("lib").classList.remove("hidden");document.getElementById("rdr").classList.remove("open");uND();
+  let h=`<div class="ac" onclick="document.getElementById('fi').click()">${ic("plus",36)}<span>Kitap Ekle</span></div>`;
   LIB.forEach(b=>{
     const p=b.tp?Math.round((b.cp||1)/b.tp*100):0;
-    h+=`<div class="bc" onclick="oB('${b.id}')"><button class="bdl" onclick="event.stopPropagation();dB('${b.id}')" title="Sil">×</button><div class="bcv">📖<div class="bpr"><div class="f" style="width:${p}%"></div></div></div><div class="bci"><div class="bt">${esc(b.t)}</div><div class="ba">${esc(b.a||"")}${p>0?" · %"+p:""}</div></div></div>`;
+    const coverHtml=b.cover?`<img src="${b.cover}" alt="">`:'📖';
+    h+=`<div class="bc" onclick="oB('${b.id}')"><button class="bdl" onclick="event.stopPropagation();dB('${b.id}')" title="Sil">✕</button><div class="bcv">${coverHtml}<div class="bpr"><div class="f" style="width:${p}%"></div></div></div><div class="bci"><div class="bt">${esc(b.t)}</div><div class="ba">${esc(b.a||"")}${p>0?" · %"+p:""}</div></div></div>`;
   });
   document.getElementById("lg").innerHTML=h;
 }
-
-function dB(id){
-  if(!confirm("Bu kitabı silmek istediğinize emin misiniz?"))return;
-  LIB=LIB.filter(b=>b.id!==id);sv("lib",LIB);
-  try{localStorage.removeItem("ug_bk_"+id)}catch{}
-  rL();
-}
+function dB(id){if(!confirm("Bu kitabı silmek istediğinize emin misiniz?"))return;LIB=LIB.filter(b=>b.id!==id);sv("lib",LIB);try{localStorage.removeItem("ub_bk_"+id);localStorage.removeItem("ub_tc_"+id);localStorage.removeItem("ub_cv_"+id)}catch{}rL()}
 
 async function oB(id){
   const bk=LIB.find(b=>b.id===id);if(!bk)return;
   sL();sLP(0,"Kitap açılıyor...");
   let pages=null;
-  try{
-    const s=localStorage.getItem("ug_bk_"+id);
-    if(s){sLP(50,"Sayfalar yükleniyor...");pages=JSON.parse(s);sLP(100,"Hazır!")}
-  }catch{}
+  try{const s=localStorage.getItem("ub_bk_"+id);if(s){sLP(50,"Yükleniyor...");pages=JSON.parse(s);sLP(100,"Hazır!")}}catch{}
   if(!pages){sLP(100,"Veri bulunamadı. Tekrar yükleyin.");setTimeout(hL,1500);return}
-  P=pages; BID=id; CP=bk.cp||1;
-  if(CP>P.length)CP=1;
-  setTimeout(()=>{hL();showReader()},300);
+  P=pages;BID=id;CP=bk.cp||1;if(CP>P.length)CP=1;
+  try{TOC=JSON.parse(localStorage.getItem("ub_tc_"+id))||[]}catch{TOC=[]}
+  try{COVER=localStorage.getItem("ub_cv_"+id)||null}catch{COVER=null}
+  setTimeout(()=>{hL();showReader()},250);
 }
 
-// ═══════════════════════════════════════════
-// FILE INPUT
-// ═══════════════════════════════════════════
+// ═══ FILE INPUT ═══
 document.getElementById("fi").addEventListener("change",async e=>{
   const file=e.target.files?.[0];if(!file)return;e.target.value="";
   sL();sLP(0,"Dosya okunuyor...");
   try{
     let r;
-    if(file.name.endsWith(".epub")){
-      const buf=await file.arrayBuffer();
-      r=await parseEpub(buf,(p,m)=>sLP(p,m));
-    }else{
-      const txt=await file.text();
-      r=await parseTxt(txt,(p,m)=>sLP(p,m));
-      if(!r.title||r.title==="Metin Dosyası")r.title=file.name.replace(/\.[^.]+$/,"");
-    }
+    if(file.name.endsWith(".epub")){const buf=await file.arrayBuffer();r=await parseEpub(buf,(p,m)=>sLP(p,m))}
+    else{const txt=await file.text();r=await parseTxt(txt,(p,m)=>sLP(p,m));if(!r.title||r.title==="Metin")r.title=file.name.replace(/\.[^.]+$/,"")}
     if(!r.pages.length){sLP(100,"Dosya okunamadı.");setTimeout(hL,1500);return}
-    const ex=LIB.findIndex(b=>b.t===r.title);
-    const id=ex>=0?LIB[ex].id:("bk_"+Date.now());
-    try{localStorage.setItem("ug_bk_"+id,JSON.stringify(r.pages))}catch{console.warn("localStorage dolu")}
-    if(ex>=0){LIB[ex].tp=r.pages.length}
-    else{LIB.push({id,t:r.title,a:r.author,tp:r.pages.length,cp:1,at:Date.now()})}
-    sv("lib",LIB);
-    P=r.pages; BID=id; CP=ex>=0?(LIB[ex].cp||1):1;
-    setTimeout(()=>{hL();showReader()},300);
+    const ex=LIB.findIndex(b=>b.t===r.title);const id=ex>=0?LIB[ex].id:("bk_"+Date.now());
+    try{localStorage.setItem("ub_bk_"+id,JSON.stringify(r.pages));if(r.toc.length)localStorage.setItem("ub_tc_"+id,JSON.stringify(r.toc));if(r.cover)localStorage.setItem("ub_cv_"+id,r.cover)}catch{console.warn("localStorage dolu")}
+    if(ex>=0){LIB[ex].tp=r.pages.length;if(r.cover)LIB[ex].cover=r.cover}
+    else LIB.push({id,t:r.title,a:r.author,tp:r.pages.length,cp:1,at:Date.now(),cover:r.cover||null});
+    sv("lib",LIB);P=r.pages;BID=id;CP=ex>=0?(LIB[ex].cp||1):1;TOC=r.toc||[];COVER=r.cover;
+    setTimeout(()=>{hL();showReader()},250);
   }catch(err){console.error(err);sLP(100,"Hata: "+err.message);setTimeout(hL,2e3)}
 });
 
-// ═══════════════════════════════════════════
-// READER
-// ═══════════════════════════════════════════
-function showReader(){
-  document.getElementById("lib").classList.add("hidden");
-  const rdr=document.getElementById("rdr");
-  rdr.classList.add("open");
-  const bk=LIB.find(b=>b.id===BID);
-  document.getElementById("rfn").textContent=bk?bk.t:"";
-  renderPages();
-  // Scroll mobile to saved page
-  if(mob()){
-    setTimeout(()=>scrollToPage(CP),100);
-  }
-}
-
-function goHome(){
-  savePos();
-  showToast("✓ Kaydedildi — Sayfa "+CP);
-  const btn=document.getElementById("home-btn");
-  if(btn){btn.style.color="#d94040";btn.style.transform="scale(1.3)"}
-  setTimeout(()=>{
-    if(btn){btn.style.color="";btn.style.transform=""}
-    document.getElementById("rdr").classList.remove("open");
-    document.getElementById("lib").classList.remove("hidden");
-    P=[];BID=null;rL();
-  },600);
-}
-
+// ═══ READER ═══
+function showReader(){document.getElementById("lib").classList.add("hidden");document.getElementById("rdr").classList.add("open");const bk=LIB.find(b=>b.id===BID);document.getElementById("rfn").textContent=bk?bk.t:"";renderPages();if(mob())setTimeout(()=>scrollToPage(CP),100)}
+function goHome(){savePos();showToast("✓ Sayfa "+CP+" kaydedildi");const btn=document.getElementById("home-btn");if(btn){btn.style.color="#d94040";btn.style.transform="scale(1.3)"}setTimeout(()=>{if(btn){btn.style.color="";btn.style.transform=""}document.getElementById("rdr").classList.remove("open");document.getElementById("lib").classList.remove("hidden");P=[];BID=null;rL()},550)}
 function gS(){return Math.floor((CP-1)/COLS)*COLS}
+function goNext(){if(mob()){if(CP<P.length)CP++}else{const n=gS()+COLS+1;if(n<=P.length)CP=n}savePos();renderPages()}
+function goPrev(){if(mob()){if(CP>1)CP--}else{const p=gS()-COLS+1;if(p>=1)CP=p}savePos();renderPages()}
+function jumpTo(pg){pg=Math.max(1,Math.min(pg,P.length));CP=pg;savePos();renderPages();if(mob())setTimeout(()=>scrollToPage(CP),50);closeJump();closeToc()}
+function savePos(){if(!BID)return;const b=LIB.find(x=>x.id===BID);if(b){b.cp=CP;sv("lib",LIB)}}
+function updateProgress(){const t=P.length;if(!t)return;const pct=Math.round(CP/t*100);document.getElementById("rpt").textContent="%"+pct;document.getElementById("pbf").style.width=pct+"%"}
 
-function goNext(){
-  if(mob()){if(CP<P.length)CP++}
-  else{const n=gS()+COLS+1;if(n<=P.length)CP=n}
-  savePos();renderPages();
-}
-function goPrev(){
-  if(mob()){if(CP>1)CP--}
-  else{const p=gS()-COLS+1;if(p>=1)CP=p}
-  savePos();renderPages();
-}
-
-function savePos(){
-  if(!BID)return;
-  const b=LIB.find(x=>x.id===BID);
-  if(b){b.cp=CP;sv("lib",LIB)}
-}
-
-function updateProgress(){
-  const t=P.length;if(!t)return;
-  const pct=Math.round(CP/t*100);
-  document.getElementById("rpt").textContent="%"+pct;
-  document.getElementById("pbf").style.width=pct+"%";
-}
-
-// ═══════════════════════════════════════════
-// PAGE BUILDING
-// ═══════════════════════════════════════════
 function bPg(content,num,total,cls=""){
   const parts=content.split("\n\n");let ph="";
-  for(let i=0;i<parts.length;i++){
-    const p=parts[i];
+  for(const p of parts){
     if(p.startsWith("###")){ph+=`<h3>${esc(p.slice(3).trim())}</h3>`}
+    else if(p.startsWith("[IMG:")&&p.endsWith("]")){const src=p.slice(5,-1);ph+=`<img src="${src}" loading="lazy">`}
     else{ph+=`<p>${esc(p)}</p>`}
   }
   return`<div class="pg ${cls}" data-page="${num}" style="font-family:${ST.ff};font-size:${ST.fs}px;font-weight:${ST.fw}" onmouseup="onSel(${num})" ontouchend="onSel(${num})">${ph}<div class="pn">${num} / ${total}</div></div>`;
 }
-
 function renderPages(){
-  const t=P.length;
-  
-  // Desktop 4-column
-  const st=gS();let dh="";
-  for(let i=0;i<COLS;i++){
-    const idx=st+i;
-    if(idx<t){dh+=bPg(P[idx],idx+1,t,i<COLS-1&&idx+1<t?"pgb":"")}
-    else{dh+=`<div class="pge"></div>`}
-  }
+  const t=P.length;const st=gS();let dh="";
+  for(let i=0;i<COLS;i++){const idx=st+i;if(idx<t)dh+=bPg(P[idx],idx+1,t,i<COLS-1&&idx+1<t?"pgb":"");else dh+=`<div class="pge"></div>`}
   document.getElementById("pd").innerHTML=dh;
-  document.getElementById("pgi").textContent=`Sayfa ${st+1}–${Math.min(st+COLS,t)} / ${t}`;
-  document.getElementById("pbtn").disabled=st===0;
-  document.getElementById("nbtn").disabled=st+COLS>=t;
-
-  // Mobile: all pages
-  let mh="";
-  for(let i=0;i<t;i++)mh+=bPg(P[i],i+1,t);
+  document.getElementById("pgi").textContent=`${st+1}–${Math.min(st+COLS,t)} / ${t}`;
+  document.getElementById("pbtn").disabled=st===0;document.getElementById("nbtn").disabled=st+COLS>=t;
+  let mh="";for(let i=0;i<t;i++)mh+=bPg(P[i],i+1,t);
   document.getElementById("pm").innerHTML=mh;
-
-  updateProgress();
-  savePos();
-  uND();
-
-  // Setup mobile scroll observer
-  if(mob())setupMobileScroll();
+  updateProgress();savePos();uND();if(mob())setupMobileScroll();
 }
+let _sd=null;
+function setupMobileScroll(){const c=document.getElementById("pm");if(!c)return;c.onscroll=function(){if(_sd)clearTimeout(_sd);_sd=setTimeout(()=>{const pages=c.querySelectorAll(".pg[data-page]");const mid=c.scrollTop+c.clientHeight/2;let vp=1;pages.forEach(pg=>{if(pg.offsetTop<=mid)vp=parseInt(pg.dataset.page)||1});CP=vp;updateProgress();savePos()},150)}}
+function scrollToPage(n){const c=document.getElementById("pm");if(!c)return;const t=c.querySelector(`.pg[data-page="${n}"]`);if(t)c.scrollTop=t.offsetTop}
 
-// ═══════════════════════════════════════════
-// MOBILE SCROLL TRACKING
-// ═══════════════════════════════════════════
-let _scrollDebounce=null;
-function setupMobileScroll(){
-  const container=document.getElementById("pm");
-  if(!container)return;
-  
-  container.onscroll=function(){
-    if(_scrollDebounce)clearTimeout(_scrollDebounce);
-    _scrollDebounce=setTimeout(()=>{
-      const pages=container.querySelectorAll(".pg[data-page]");
-      const containerTop=container.scrollTop;
-      const containerMid=containerTop+container.clientHeight/2;
-      let visiblePage=1;
-      pages.forEach(pg=>{
-        if(pg.offsetTop<=containerMid){
-          visiblePage=parseInt(pg.dataset.page)||1;
-        }
-      });
-      CP=visiblePage;
-      updateProgress();
-      savePos();
-    },150);
-  };
+// ═══ TOC ═══
+function openToc(){
+  let h=`<div class="ph"><h3>${ic("list")} İçindekiler</h3><button class="btn-i" onclick="closeToc()">${ic("x")}</button></div>`;
+  if(!TOC.length)h+=`<p style="color:var(--muted);padding:20px 0;text-align:center">Bu kitap için içindekiler bulunamadı.</p>`;
+  else{h+=`<div class="toc-list">`;TOC.forEach(t=>{h+=`<div class="toc-item" onclick="jumpTo(${t.page})"><span>${esc(t.title)}</span><span class="toc-pg">s.${t.page}</span></div>`});h+=`</div>`}
+  document.getElementById("p-toc").innerHTML=h;document.getElementById("ov-toc").classList.add("open");
 }
+function closeToc(){document.getElementById("ov-toc").classList.remove("open")}
 
-function scrollToPage(pageNum){
-  const container=document.getElementById("pm");
-  if(!container)return;
-  const target=container.querySelector(`.pg[data-page="${pageNum}"]`);
-  if(target){
-    container.scrollTop=target.offsetTop;
-  }
+// ═══ PAGE JUMP ═══
+function openJump(){
+  document.getElementById("p-jump").innerHTML=`
+    <div class="ph"><h3>${ic("hash")} Sayfaya Git</h3><button class="btn-i" onclick="closeJump()">${ic("x")}</button></div>
+    <p style="font-size:13px;color:var(--muted);margin-bottom:16px">Toplam ${P.length} sayfa · Şu an: ${CP}</p>
+    <div class="jump-row"><input class="inp" id="jump-inp" type="number" min="1" max="${P.length}" value="${CP}" onkeydown="if(event.key==='Enter')doJump()"><button class="btn btn-p" onclick="doJump()">Git</button></div>`;
+  document.getElementById("ov-jump").classList.add("open");
+  setTimeout(()=>{const inp=document.getElementById("jump-inp");inp?.focus();inp?.select()},100);
 }
+function closeJump(){document.getElementById("ov-jump").classList.remove("open")}
+function doJump(){const v=parseInt(document.getElementById("jump-inp")?.value);if(v&&v>=1&&v<=P.length)jumpTo(v)}
 
-// ═══════════════════════════════════════════
-// TEXT SELECTION -> NOTE
-// ═══════════════════════════════════════════
-function onSel(pg){
-  const s=window.getSelection(),t=s?.toString().trim();
-  if(t&&t.split(/\s+/).length>=2)oND(t,pg);
-}
-
+// ═══ TEXT SELECTION → NOTE ═══
+function onSel(pg){const s=window.getSelection(),t=s?.toString().trim();if(t&&t.split(/\s+/).length>=2)oND(t,pg)}
 let _ns="",_np=0;
-function oND(sel,pg){
-  _ns=sel;_np=pg;
-  let opts=NB.map(n=>`<option value="${n.id}">${esc(n.name)} (${n.notes.length})</option>`).join("");
-  opts+=`<option value="new">+ Yeni Defter Oluştur</option>`;
-  if(!NB.length)opts=`<option value="new">+ Yeni Defter Oluştur</option>`;
-  document.getElementById("pn").innerHTML=`
-    <div class="ph"><h3>Not Ekle</h3><button class="btn-i" onclick="closeND()">${ic("x")}</button></div>
-    <div class="nq"><div class="meta">Sayfa ${pg} — Seçili Metin:</div>"${esc(sel.length>200?sel.slice(0,200)+"...":sel)}"</div>
-    <div style="margin-bottom:12px"><label style="font-size:13px;color:var(--muted);display:block;margin-bottom:6px">Defter:</label><select class="inp" id="nds" onchange="document.getElementById('ndn').style.display=this.value==='new'?'block':'none'">${opts}</select></div>
-    <div id="ndn" style="display:${NB.length?"none":"block"};margin-bottom:12px"><input class="inp" id="ndnn" placeholder="Defter adı..."></div>
-    <div style="margin-bottom:12px"><label style="font-size:13px;color:var(--muted);display:block;margin-bottom:6px">Notunuz:</label><textarea class="inp" id="ndt" placeholder="Notunuzu yazın..." rows="4" style="resize:vertical;line-height:1.5;min-height:80px"></textarea></div>
-    <div style="display:flex;gap:8px;justify-content:flex-end"><button class="btn btn-g" onclick="closeND()">İptal</button><button class="btn btn-p" onclick="svN()">Kaydet</button></div>`;
-  document.getElementById("ovn").classList.add("open");
-  if(!NB.length)document.getElementById("nds").value="new";
-}
+function oND(sel,pg){_ns=sel;_np=pg;let opts=NB.map(n=>`<option value="${n.id}">${esc(n.name)} (${n.notes.length})</option>`).join("");opts+=`<option value="new">+ Yeni Defter</option>`;if(!NB.length)opts=`<option value="new">+ Yeni Defter</option>`;
+  document.getElementById("pn").innerHTML=`<div class="ph"><h3>Not Ekle</h3><button class="btn-i" onclick="closeND()">${ic("x")}</button></div><div class="nq"><div class="meta">Sayfa ${pg}</div>"${esc(sel.length>200?sel.slice(0,200)+"...":sel)}"</div><div style="margin-bottom:12px"><label class="lbl">Defter:</label><select class="inp" id="nds" onchange="document.getElementById('ndn').style.display=this.value==='new'?'block':'none'">${opts}</select></div><div id="ndn" style="display:${NB.length?"none":"block"};margin-bottom:12px"><input class="inp" id="ndnn" placeholder="Defter adı..."></div><div style="margin-bottom:12px"><label class="lbl">Notunuz:</label><textarea class="inp" id="ndt" placeholder="Notunuzu yazın..." rows="3" style="resize:vertical;line-height:1.5"></textarea></div><div style="display:flex;gap:8px;justify-content:flex-end"><button class="btn btn-g" onclick="closeND()">İptal</button><button class="btn btn-p" onclick="svN()">Kaydet</button></div>`;
+  document.getElementById("ovn").classList.add("open");if(!NB.length)document.getElementById("nds").value="new"}
 function closeND(){document.getElementById("ovn").classList.remove("open");window.getSelection()?.removeAllRanges()}
-function svN(){
-  const txt=document.getElementById("ndt").value.trim();if(!txt)return;
-  const nbId=document.getElementById("nds").value;
-  const note={text:txt,sel:_ns,pg:_np,ts:Date.now(),bid:BID};
-  if(nbId==="new"){const nm=document.getElementById("ndnn").value.trim()||("Defter "+(NB.length+1));NB.push({id:"nb_"+Date.now(),name:nm,notes:[note]})}
-  else{const nb=NB.find(n=>n.id===nbId);if(nb)nb.notes.push(note)}
-  sv("nb",NB);closeND();uND();
-}
+function svN(){const txt=document.getElementById("ndt").value.trim();if(!txt)return;const nbId=document.getElementById("nds").value;const note={text:txt,sel:_ns,pg:_np,ts:Date.now(),bid:BID};if(nbId==="new"){const nm=document.getElementById("ndnn").value.trim()||("Defter "+(NB.length+1));NB.push({id:"nb_"+Date.now(),name:nm,notes:[note]})}else{const nb=NB.find(n=>n.id===nbId);if(nb)nb.notes.push(note)}sv("nb",NB);closeND();uND()}
 
-// ═══════════════════════════════════════════
-// NOTEBOOKS PANEL
-// ═══════════════════════════════════════════
+// ═══ NOTEBOOKS ═══
 function openNotes(){rNP();document.getElementById("ovnb").classList.add("open")}
 function closeNotes(){document.getElementById("ovnb").classList.remove("open")}
-function rNP(){
-  let h=`<div class="nbh"><h2>${ic("note",22)} Notlarım</h2><div style="display:flex;gap:8px;align-items:center"><button class="btn btn-p" style="padding:6px 12px;font-size:13px" onclick="sCNb()">${ic("plus",14)} Yeni Defter</button><button class="btn-i" onclick="closeNotes()">${ic("x",20)}</button></div></div><div id="nbc"></div>`;
-  if(!NB.length){h+=`<div class="nbe">${ic("note",48)}<p style="margin-top:12px">Henüz not defteriniz yok.</p></div>`}
-  else NB.forEach((nb,i)=>{
-    h+=`<div class="nbi"><div class="nbih" onclick="tNb(${i})"><div><div style="font-weight:600;font-size:15px">${esc(nb.name)}</div><div style="font-size:12px;color:var(--muted);margin-top:2px">${nb.notes.length} not</div></div><div style="display:flex;gap:4px;align-items:center">
-      <button class="btn-i" onclick="event.stopPropagation();srNb(${i})" title="Yeniden Adlandır" style="padding:4px">${ic("edit",14)}</button>
-      <button class="btn-i" onclick="event.stopPropagation();dNb(${i})" title="Sil" style="padding:4px;color:var(--muted)">${ic("trash",14)}</button>
-      <button class="btn-i" onclick="event.stopPropagation();sAN('${nb.id}')" style="padding:4px;color:var(--accent)">${ic("plus",16)}</button>
-      <svg class="ic" width="16" height="16" style="color:var(--muted)" id="nc${i}"><use href="#i-cd"/></svg></div></div>
-    <div id="nrn${i}" class="nber" style="display:none"></div>
-    <div id="na${nb.id}" class="nbcr" style="display:none"><input class="inp" id="nai${nb.id}" placeholder="Not yazın..." onkeydown="if(event.key==='Enter')aDN('${nb.id}')"><button class="btn btn-p" style="padding:8px 12px;font-size:13px" onclick="aDN('${nb.id}')">Ekle</button></div>
-    <div id="nn${i}" style="display:none;padding:0 24px 16px">`;
+function rNP(){let h=`<div class="nbh"><h2>${ic("note",20)} Notlarım</h2><div style="display:flex;gap:8px;align-items:center"><button class="btn btn-p" style="padding:8px 14px;font-size:13px" onclick="sCNb()">${ic("plus",14)} Yeni Defter</button><button class="btn-i" onclick="closeNotes()">${ic("x",20)}</button></div></div><div id="nbc"></div>`;
+  if(!NB.length)h+=`<div class="nbe">${ic("note",48)}<p style="margin-top:12px">Henüz not defteriniz yok.</p></div>`;
+  else NB.forEach((nb,i)=>{h+=`<div class="nbi"><div class="nbih" onclick="tNb(${i})"><div><div style="font-weight:600;font-size:15px">${esc(nb.name)}</div><div style="font-size:12px;color:var(--muted);margin-top:2px">${nb.notes.length} not</div></div><div style="display:flex;gap:4px;align-items:center"><button class="btn-i" onclick="event.stopPropagation();srNb(${i})" title="Adlandır" style="padding:4px">${ic("edit",14)}</button><button class="btn-i" onclick="event.stopPropagation();dNb(${i})" title="Sil" style="padding:4px;color:var(--muted)">${ic("trash",14)}</button><button class="btn-i" onclick="event.stopPropagation();sAN('${nb.id}')" style="padding:4px;color:var(--gold)">${ic("plus",16)}</button><svg class="ic" width="16" height="16" style="color:var(--muted)" id="nc${i}"><use href="#i-cd"/></svg></div></div><div id="nrn${i}" class="nber" style="display:none"></div><div id="na${nb.id}" class="nbcr" style="display:none"><input class="inp" id="nai${nb.id}" placeholder="Not yazın..." onkeydown="if(event.key==='Enter')aDN('${nb.id}')"><button class="btn btn-p" style="padding:8px 12px;font-size:13px" onclick="aDN('${nb.id}')">Ekle</button></div><div id="nn${i}" style="display:none;padding:0 24px 16px">`;
     if(!nb.notes.length)h+=`<p style="font-size:13px;color:var(--muted);margin:8px 0">Henüz not yok.</p>`;
-    else nb.notes.forEach((n,ni)=>{
-      h+=`<div class="nbn">`;
-      if(n.sel)h+=`<div class="qr">"${esc(n.sel.length>150?n.sel.slice(0,150)+"...":n.sel)}"${n.pg?`<span style="font-size:11px;margin-left:8px">— Sayfa ${n.pg}</span>`:""}</div>`;
-      h+=`<div style="line-height:1.5">${esc(n.text)}</div><div class="nf"><span class="nt">${new Date(n.ts).toLocaleString("tr-TR")}</span><button class="btn-i" style="padding:2px" onclick="dN(${i},${ni})">${ic("trash",14)}</button></div></div>`;
-    });
-    h+=`</div></div>`;
-  });
-  document.getElementById("pnb").innerHTML=h;
-}
+    else nb.notes.forEach((n,ni)=>{h+=`<div class="nbn">`;if(n.sel)h+=`<div class="qr">"${esc(n.sel.length>150?n.sel.slice(0,150)+"...":n.sel)}"${n.pg?`<span style="font-size:11px;margin-left:8px">— s.${n.pg}</span>`:""}</div>`;h+=`<div style="line-height:1.5">${esc(n.text)}</div><div class="nf"><span class="nt">${new Date(n.ts).toLocaleString("tr-TR")}</span><button class="btn-i" style="padding:2px" onclick="dN(${i},${ni})">${ic("trash",14)}</button></div></div>`});
+    h+=`</div></div>`});
+  document.getElementById("pnb").innerHTML=h}
 function tNb(i){const e=document.getElementById("nn"+i),c=document.getElementById("nc"+i);if(e.style.display==="none"){e.style.display="block";c.innerHTML='<use href="#i-cu"/>'}else{e.style.display="none";c.innerHTML='<use href="#i-cd"/>'}}
 function sCNb(){document.getElementById("nbc").innerHTML=`<div class="nbcr"><input class="inp" id="ncbi" placeholder="Defter adı..." autofocus><button class="btn btn-p" style="padding:8px 14px;font-size:13px" onclick="cNb()">Oluştur</button></div>`;setTimeout(()=>document.getElementById("ncbi")?.focus(),50)}
 function cNb(){const nm=document.getElementById("ncbi")?.value.trim();if(!nm)return;NB.push({id:"nb_"+Date.now(),name:nm,notes:[]});sv("nb",NB);rNP();uND()}
 function sAN(id){const e=document.getElementById("na"+id);e.style.display=e.style.display==="none"?"flex":"none";if(e.style.display==="flex")setTimeout(()=>document.getElementById("nai"+id)?.focus(),50)}
 function aDN(id){const inp=document.getElementById("nai"+id),txt=inp?.value.trim();if(!txt)return;const nb=NB.find(n=>n.id===id);if(nb){nb.notes.push({text:txt,sel:null,pg:null,ts:Date.now(),bid:BID});sv("nb",NB);rNP();uND()}}
 function dN(i,ni){NB[i].notes.splice(ni,1);sv("nb",NB);rNP();uND()}
-function dNb(i){if(!confirm(`"${NB[i].name}" defterini silmek istediğinize emin misiniz?`))return;NB.splice(i,1);sv("nb",NB);rNP();uND()}
+function dNb(i){if(!confirm(`"${NB[i].name}" defterini silmek?`))return;NB.splice(i,1);sv("nb",NB);rNP();uND()}
 function srNb(i){const e=document.getElementById("nrn"+i);e.style.display="flex";e.innerHTML=`<input class="inp" id="nri${i}" value="${esc(NB[i].name)}" style="flex:1"><button class="btn btn-p" style="padding:6px 12px;font-size:13px" onclick="frNb(${i})">Kaydet</button><button class="btn btn-g" style="padding:6px 12px;font-size:13px" onclick="document.getElementById('nrn${i}').style.display='none'">İptal</button>`;setTimeout(()=>{const inp=document.getElementById("nri"+i);inp?.focus();inp?.select()},50)}
 function frNb(i){const nm=document.getElementById("nri"+i)?.value.trim();if(!nm)return;NB[i].name=nm;sv("nb",NB);rNP()}
 function uND(){const tot=NB.reduce((a,n)=>a+n.notes.length,0);["lnd","rnd"].forEach(id=>{const e=document.getElementById(id);if(e)e.classList.toggle("hidden",!tot)})}
 
-// ═══════════════════════════════════════════
-// SETTINGS
-// ═══════════════════════════════════════════
+// ═══ SETTINGS ═══
 function openSettings(){rSP();document.getElementById("ovs").classList.add("open")}
 function closeSettings(){document.getElementById("ovs").classList.remove("open")}
 function rSP(){
-  const tC={day:"#f5f0e8",sepia:"#f1e4c8",night:"#1a1a22"},tT={day:"#2c2416",sepia:"#3e2d13",night:"#c8c0b0"},tL={day:"☀️ Gündüz",sepia:"📜 Sepya",night:"🌙 Gece"};
+  const tC={day:"#f4efe6",sepia:"#eee1c5",night:"#13151e"},tT={day:"#2a2015",sepia:"#3e2d13",night:"#c5bda8"},tL={day:"☀️ Gündüz",sepia:"📜 Sepya",night:"🌙 Gece"};
   let h=`<div class="ph"><h3>Ayarlar</h3><button class="btn-i" onclick="closeSettings()">${ic("x")}</button></div>`;
-  h+=`<div class="sg"><span class="sl">Okuma Modu</span><div class="tr">${["day","sepia","night"].map(t=>`<button class="${ST.theme===t?"on":""}" style="background:${tC[t]};color:${tT[t]}" onclick="sT('${t}');rSP();if(P.length)renderPages()">${tL[t]}</button>`).join("")}</div></div>`;
-  h+=`<div class="sg"><span class="sl">Yazı Tipi</span><div class="fl">${FTS.map(f=>`<button class="${ST.ff===f.f?"on":""}" style="font-family:${f.f}" onclick="ST.ff='${f.f}';sv('st',ST);rSP();if(P.length)renderPages()">${f.n} — Örnek metin</button>`).join("")}</div></div>`;
-  h+=`<div class="sg"><span class="sl">Yazı Boyutu: ${ST.fs}px</span><div class="sr">${SZS.map(s=>`<button class="${ST.fs===s?"on":""}" onclick="ST.fs=${s};sv('st',ST);rSP();if(P.length)renderPages()">${s}</button>`).join("")}</div></div>`;
-  h+=`<div class="sg"><span class="sl">Yazı Kalınlığı</span><div class="wr">${WTS.map(w=>`<button class="${ST.fw===w.v?"on":""}" style="font-weight:${w.v}" onclick="ST.fw=${w.v};sv('st',ST);rSP();if(P.length)renderPages()">${w.l}</button>`).join("")}</div></div>`;
-  document.getElementById("ps").innerHTML=h;
-}
+  h+=`<div class="sg"><span class="lbl">Okuma Modu</span><div class="tr">${["day","sepia","night"].map(t=>`<button class="${ST.theme===t?"on":""}" style="background:${tC[t]};color:${tT[t]}" onclick="sT('${t}');rSP();if(P.length)renderPages()">${tL[t]}</button>`).join("")}</div></div>`;
+  h+=`<div class="sg"><span class="lbl">Yazı Tipi</span><div class="fl">${FTS.map(f=>`<button class="${ST.ff===f.f?"on":""}" style="font-family:${f.f}" onclick="ST.ff='${f.f}';sv('st',ST);rSP();if(P.length)renderPages()">${f.n} — Örnek metin</button>`).join("")}</div></div>`;
+  h+=`<div class="sg"><span class="lbl">Boyut: ${ST.fs}px</span><div class="sr">${SZS.map(s=>`<button class="${ST.fs===s?"on":""}" onclick="ST.fs=${s};sv('st',ST);rSP();if(P.length)renderPages()">${s}</button>`).join("")}</div></div>`;
+  h+=`<div class="sg"><span class="lbl">Kalınlık</span><div class="wr">${WTS.map(w=>`<button class="${ST.fw===w.v?"on":""}" style="font-weight:${w.v}" onclick="ST.fw=${w.v};sv('st',ST);rSP();if(P.length)renderPages()">${w.l}</button>`).join("")}</div></div>`;
+  document.getElementById("ps").innerHTML=h}
 
-// ═══════════════════════════════════════════
-// KEYBOARD
-// ═══════════════════════════════════════════
-document.addEventListener("keydown",e=>{
-  if(!P.length)return;
-  if(["INPUT","TEXTAREA","SELECT"].includes(e.target.tagName))return;
-  if(e.key==="ArrowRight"||e.key==="ArrowDown")goNext();
-  if(e.key==="ArrowLeft"||e.key==="ArrowUp")goPrev();
-});
-
-// ═══════════════════════════════════════════
-// INSTALL GUIDE
-// ═══════════════════════════════════════════
 function openInstall(){document.getElementById("ov-install").classList.add("open")}
 function closeInstall(){document.getElementById("ov-install").classList.remove("open")}
+function showPwaBanner(){if(localStorage.getItem("ub_pwa_d"))return;if(window.matchMedia&&window.matchMedia('(display-mode: standalone)').matches)return;if(mob())setTimeout(()=>document.getElementById("pwa-banner").classList.add("show"),3000)}
+function closePwaBanner(){document.getElementById("pwa-banner").classList.remove("show");localStorage.setItem("ub_pwa_d","1")}
 
-function showPwaBanner(){
-  if(localStorage.getItem("ug_pwa_dismissed"))return;
-  if(window.matchMedia&&window.matchMedia('(display-mode: standalone)').matches)return;
-  if(mob())setTimeout(()=>document.getElementById("pwa-banner").classList.add("show"),3000);
-}
-function closePwaBanner(){
-  document.getElementById("pwa-banner").classList.remove("show");
-  localStorage.setItem("ug_pwa_dismissed","1");
-}
+document.addEventListener("keydown",e=>{if(!P.length)return;if(["INPUT","TEXTAREA","SELECT"].includes(e.target.tagName))return;if(e.key==="ArrowRight"||e.key==="ArrowDown")goNext();if(e.key==="ArrowLeft"||e.key==="ArrowUp")goPrev()});
+if(window.matchMedia&&window.matchMedia('(display-mode: standalone)').matches){const ib=document.getElementById("install-btn");if(ib)ib.style.display="none"}else if(mob())showPwaBanner();
 
-// Hide install button if already standalone
-if(window.matchMedia&&window.matchMedia('(display-mode: standalone)').matches){
-  const ib=document.getElementById("install-btn");if(ib)ib.style.display="none";
-}else if(mob()){showPwaBanner()}
-
-// ═══════════════════════════════════════════
-// INIT
-// ═══════════════════════════════════════════
 aT();rL();
-
-// Register Service Worker for PWA
-if('serviceWorker' in navigator){
-  navigator.serviceWorker.register('sw.js').catch(()=>{});
-}
+if('serviceWorker' in navigator)navigator.serviceWorker.register('sw.js').catch(()=>{});
 </script>
 </body>
 </html>
